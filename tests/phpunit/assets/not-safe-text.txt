@@ -1,0 +1,4 @@
+This is a text file that contain embedded php code.
+<?php
+echo 'hello world.';
+?>

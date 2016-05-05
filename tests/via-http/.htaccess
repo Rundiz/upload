@@ -1,0 +1,10 @@
+<IfModule mod_php5.c>
+	php_value date.timezone "Asia/Bangkok"
+
+	#change max upload size for test get file mime type
+	php_value upload_max_filesize 1000M
+	php_value post_max_size 1020M
+	
+	# disable magic quote
+	php_flag magic_quotes_gpc Off
+</IfModule>

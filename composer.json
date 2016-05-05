@@ -1,0 +1,23 @@
+{
+    "name": "rundiz/upload",
+    "type": "library",
+    "description": "Upload single or multiple files with validations. (allowed file extensions, matched mime type, max file size, security scan, reserved file name, safe for web file name).",
+    "keywords": ["upload", "upload single file", "upload multiple files", "upload array", "secure upload", "web safe file name", "php upload"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Vee W.",
+            "email": "kawewong@gmail.com",
+            "homepage": "http://rundiz.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Rundiz\\Upload\\" : "Rundiz/Upload"
+        }
+    }
+}
