@@ -46,7 +46,7 @@ if (strtolower($_SERVER['REQUEST_METHOD']) == 'post') {
     }
 
     // To check for the errors.
-    if (is_array($Upload->error_messages) && !empty($this->error_messages)) {
+    if (is_array($Upload->error_messages) && !empty($Upload->error_messages)) {
         echo '<h3>Error!</h3>';
         foreach ($Upload->error_messages as $error_message) {
             echo '<p>'.$error_message.'</p>'."\n";
