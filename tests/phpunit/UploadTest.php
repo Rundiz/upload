@@ -3,7 +3,7 @@
 
 namespace Rundiz\Upload\Tests;
 
-class UploadTest extends \PHPUnit_Framework_TestCase
+class UploadTest extends \PHPUnit\Framework\TestCase
 {
 
 
@@ -22,8 +22,8 @@ class UploadTest extends \PHPUnit_Framework_TestCase
     }// tearDownAfterClass
 
 
-    private $asset_folder = __DIR__.DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR;
-    private $temp_folder = __DIR__.DIRECTORY_SEPARATOR.'temp'.DIRECTORY_SEPARATOR;
+    private $asset_folder;
+    private $temp_folder;
     private $file_text;
     private $file_dangertext;
     private $file_falseimage;
@@ -33,6 +33,9 @@ class UploadTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
+        $this->asset_folder = __DIR__.DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR;
+        $this->temp_folder = __DIR__.DIRECTORY_SEPARATOR.'temp'.DIRECTORY_SEPARATOR;
+
         // copy files from assets folder to temp to prevent file deletion while set it to $_FILES.
         $files = glob($this->asset_folder.'*.*');
         if (is_array($files)) {
