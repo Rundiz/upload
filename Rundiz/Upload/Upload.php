@@ -13,7 +13,7 @@ namespace Rundiz\Upload;
  * PHP upload class that is able to validate requirements and limitations, real file's mime type check, detect the errors and report.
  *
  * @package Upload
- * @version 2.0
+ * @version 2.0.1
  * @author Vee W.
  */
 class Upload
@@ -69,6 +69,54 @@ class Upload
      * @var string Path to store files that was uploaded to move to. Do not end with trailing slash.
      */
     public $move_uploaded_to = '.';
+
+    /**
+     * Contain error codes.
+     * 
+     * The array format will be:
+     * <pre>
+     * array(
+     *     index => array(// the `index` will be the same as it is in error_messages property.
+     *         'code' => 'RDU_1',// this will be error code, start with RDU_ and follow with number or short error message without space. it is easy for check and replace with your translation.
+     *         'errorAttributes' => 'string',// this key contain error attributes as string 
+     *             // for example: 9MB > 2MB in case that limit file size to 2MB but uploaded 9MB, or showing file name that have problem.
+     *             // this key may contain empty string so check it before use.
+     *         'errorFileName' => 'filename.ext',// the file name with extension that cause error message.
+     *             // this key may contain empty string.
+     *         'errorFileSize' => '12345',// the file size in bytes.
+     *             // this key may contain empty string.
+     *         'errorFileMime' => 'mime/type',// the file mime type.
+     *             // this key may contain empty string.
+     *     )
+     * )
+     * </pre>
+     * 
+     * The error codes and description.
+     * 
+     * RDU_MOVE_UPLOADED_FAILED = Failed to move uploaded file.<br>
+     * RDU_SEC_ERR_PHP = Security error! Found PHP embedded in the uploaded file.<br>
+     * RDU_SEC_ERR_CGI = Security error! Found CGI/Pearl embedded in the uploaded file.<br>
+     * RDU_MOVE_UPLOADED_TO_NOT_DIR = The target upload location is not folder.<br>
+     * RDU_MOVE_UPLOADED_TO_NOT_WRITABLE = The target upload location is not writable. Please check folder permission.<br>
+     * RDU_UNABLE_VALIDATE_EXT = Unable to validate file extension.<br>
+     * RDU_NOT_ALLOW_EXT = The uploaded file is not in allowed extensions.<br>
+     * RDU_UNABLE_VALIDATE_EXT_AND_MIME = Unable to validate file extension and mime type.<br>
+     * RDU_INVALID_MIME = The uploaded file has invalid mime type.<br>
+     * RDU_UNABLE_VALIDATE_MIME = Unable to validate mime type.
+     * 
+     * For the RDU_1 to RDU_8 use PHP upload errors. ( http://php.net/manual/en/features.file-upload.errors.php ).<br>
+     * RDU_1 = The uploaded file exceeds the max file size directive.<br>
+     * RDU_2 = The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form.<br>
+     * RDU_3 = The uploaded file was only partially uploaded.<br>
+     * RDU_4 = No file was uploaded.<br>
+     * RDU_6 = Missing a temporary folder.<br>
+     * RDU_7 = Failed to write file to disk.<br>
+     * RDU_8 = A PHP extension stopped the file upload.<br>
+     * 
+     * @since 2.0.1
+     * @var array If there is at least one error, it will be set to here.
+     */
+    public $error_codes = array();
 
     /**
      * @var array If there is at least one error message it will be set to here.
@@ -271,7 +319,11 @@ class Upload
                         );
                         $i++;
                     } else {
-                        $this->error_messages = array_merge($this->error_messages, array(sprintf(static::__('Unable to move uploaded file. (%s =&gt; %s)'), $queue_item['name'], $this->move_uploaded_to.DIRECTORY_SEPARATOR.$destination_name)));
+                        $this->setErrorMessage(
+                            sprintf(static::__('Unable to move uploaded file. (%s =&gt; %s)'), $queue_item['name'], $this->move_uploaded_to . DIRECTORY_SEPARATOR . $destination_name),
+                            'RDU_MOVE_UPLOADED_FAILED',
+                            $queue_item['name'] . '=&gt; ' . $this->move_uploaded_to . DIRECTORY_SEPARATOR . $destination_name
+                        );
                     }
 
                     unset($destination_name, $move_result);
@@ -349,14 +401,28 @@ class Upload
                 // scan php open tag
                 if (strpos($file_content, '<?php') !== false) {
                     // found php open tag. (<?php).
-                    $this->error_messages = array_merge($this->error_messages, array(sprintf(static::__('Error! Found php embedded in the uploaded file. (%s).'), $this->files[$this->input_file_name]['name'])));
+                    $this->setErrorMessage(
+                        sprintf(static::__('Error! Found php embedded in the uploaded file. (%s).'), $this->files[$this->input_file_name]['name']),
+                        'RDU_SEC_ERR_PHP',
+                        $this->files[$this->input_file_name]['name'],
+                        $this->files[$this->input_file_name]['name'],
+                        $this->files[$this->input_file_name]['size'],
+                        $this->files[$this->input_file_name]['type']
+                    );
                     return false;
                 }
 
                 // scan cgi/perl
                 if (strpos($file_content, '#!/') !== false && strpos($file_content, '/perl') !== false) {
                     // found cgi/perl header.
-                    $this->error_messages = array_merge($this->error_messages, array(sprintf(static::__('Error! Found cgi/perl embedded in the uploaded file. (%s).'), $this->files[$this->input_file_name]['name'])));
+                    $this->setErrorMessage(
+                        sprintf(static::__('Error! Found cgi/perl embedded in the uploaded file. (%s).'), $this->files[$this->input_file_name]['name']),
+                        'RDU_SEC_ERR_CGI',
+                        $this->files[$this->input_file_name]['name'],
+                        $this->files[$this->input_file_name]['name'],
+                        $this->files[$this->input_file_name]['size'],
+                        $this->files[$this->input_file_name]['type']
+                    );
                     return false;
                 }
 
@@ -366,6 +432,47 @@ class Upload
 
         return true;
     }// securityScan
+
+
+    /**
+     * Set the error message into error_messages and error_codes properties.
+     * 
+     * @since 2.0.1
+     * @param string $error_messages The error message.
+     * @param string $code The error code, start with RDU_ and follow with number or short error message without space.
+     * @param string $errorAttributes Error attributes. For example: 9MB > 2MB in case that limit file size to 2MB but uploaded 9MB, or showing file name that have problem.
+     * @param string $errorFileName The file name with extension.
+     * @param string $errorFileSize The file size in bytes.
+     * @param string $errorFileMime The file mime type.
+     */
+    protected function setErrorMessage(
+        $error_messages, 
+        $code, 
+        $errorAttributes = '', 
+        $errorFileName = '', 
+        $errorFileSize = '', 
+        $errorFileMime = ''
+    ) {
+        $arg_list = func_get_args();
+        $numargs = func_num_args();
+        for ($i = 0; $i < $numargs; $i++) {
+            if (is_array($arg_list) && array_key_exists($i, $arg_list) && !is_scalar($arg_list[$i])) {
+                return false;
+            } elseif ($arg_list === false) {
+                return false;
+            }
+        }
+        unset($arg_list, $i, $numargs);
+
+        $this->error_messages[] = $error_messages;
+        $this->error_codes[] = array(
+            'code' => $code,
+            'errorAttributes' => $errorAttributes,
+            'errorFileName' => $errorFileName,
+            'errorFileSize' => $errorFileSize,
+            'errorFileMime' => $errorFileMime,
+        );
+    }// setErrorMessage
 
 
     /**
@@ -550,10 +657,18 @@ class Upload
 
         // verify that location where the uploaded file(s) will be moved to is writable.
         if (!is_dir($this->move_uploaded_to)) {
-            $this->error_messages = array_merge($this->error_messages, array(static::__('The target location where the uploaded file(s) will be moved to is not folder or directory.')));
+            $this->setErrorMessage(
+                static::__('The target location where the uploaded file(s) will be moved to is not folder or directory.'),
+                'RDU_MOVE_UPLOADED_TO_NOT_DIR',
+                $this->move_uploaded_to
+            );
             return false;
         } elseif (is_dir($this->move_uploaded_to) && !is_writable($this->move_uploaded_to)) {
-            $this->error_messages = array_merge($this->error_messages, array(static::__('The target location where the uploaded file(s) will be moved to is not writable. Please check the folder permission.')));
+            $this->setErrorMessage(
+                static::__('The target location where the uploaded file(s) will be moved to is not writable. Please check the folder permission.'),
+                'RDU_MOVE_UPLOADED_TO_NOT_WRITABLE',
+                $this->move_uploaded_to
+            );
             return false;
         } else {
             // solve the move uploaded to as a real path.
@@ -613,25 +728,74 @@ class Upload
         if (is_array($this->files[$this->input_file_name]) && array_key_exists('error', $this->files[$this->input_file_name]) && $this->files[$this->input_file_name]['error'] != 0) {
             switch ($this->files[$this->input_file_name]['error']) {
                 case 1:
-                    $this->error_messages = array_merge($this->error_messages, array(sprintf(static::__('The uploaded file exceeds the max file size directive. (%s &gt; %s).'), $this->files[$this->input_file_name]['name'], ini_get('upload_max_filesize'))));
+                    $this->setErrorMessage(
+                        sprintf(static::__('The uploaded file exceeds the max file size directive. (%s &gt; %s).'), $this->files[$this->input_file_name]['size'], ini_get('upload_max_filesize')),
+                        'RDU_' . $this->files[$this->input_file_name]['error'],
+                        $this->files[$this->input_file_name]['size'] . ' &gt; ' . ini_get('upload_max_filesize'),
+                        $this->files[$this->input_file_name]['name'],
+                        $this->files[$this->input_file_name]['size'],
+                        $this->files[$this->input_file_name]['type']
+                    );
                     return false;
                 case 2:
-                    $this->error_messages = array_merge($this->error_messages, array(static::__('The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form.')));
+                    $this->setErrorMessage(
+                        static::__('The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form.'),
+                        'RDU_' . $this->files[$this->input_file_name]['error'],
+                        '',
+                        $this->files[$this->input_file_name]['name'],
+                        $this->files[$this->input_file_name]['size'],
+                        $this->files[$this->input_file_name]['type']
+                    );
                     return false;
                 case 3:
-                    $this->error_messages = array_merge($this->error_messages, array(static::__('The uploaded file was only partially uploaded.')));
+                    $this->setErrorMessage(
+                        static::__('The uploaded file was only partially uploaded.'),
+                        'RDU_' . $this->files[$this->input_file_name]['error'],
+                        '',
+                        $this->files[$this->input_file_name]['name'],
+                        $this->files[$this->input_file_name]['size'],
+                        $this->files[$this->input_file_name]['type']
+                    );
                     return false;
                 case 4:
-                    $this->error_messages = array_merge($this->error_messages, array(static::__('You did not upload the file.')));
+                    $this->setErrorMessage(
+                        static::__('You did not upload the file.'),
+                        'RDU_' . $this->files[$this->input_file_name]['error'],
+                        '',
+                        $this->files[$this->input_file_name]['name'],
+                        $this->files[$this->input_file_name]['size'],
+                        $this->files[$this->input_file_name]['type']
+                    );
                     return false;
                 case 6:
-                    $this->error_messages = array_merge($this->error_messages, array(static::__('Missing a temporary folder.')));
+                    $this->setErrorMessage(
+                        static::__('Missing a temporary folder.'),
+                        'RDU_' . $this->files[$this->input_file_name]['error'],
+                        '',
+                        $this->files[$this->input_file_name]['name'],
+                        $this->files[$this->input_file_name]['size'],
+                        $this->files[$this->input_file_name]['type']
+                    );
                     return false;
                 case 7:
-                    $this->error_messages = array_merge($this->error_messages, array(static::__('Failed to write file to disk.')));
+                    $this->setErrorMessage(
+                        static::__('Failed to write file to disk.'),
+                        'RDU_' . $this->files[$this->input_file_name]['error'],
+                        '',
+                        $this->files[$this->input_file_name]['name'],
+                        $this->files[$this->input_file_name]['size'],
+                        $this->files[$this->input_file_name]['type']
+                    );
                     return false;
                 case 8:
-                    $this->error_messages = array_merge($this->error_messages, array(static::__('A PHP extension stopped the file upload.')));
+                    $this->setErrorMessage(
+                        static::__('A PHP extension stopped the file upload.'),
+                        'RDU_' . $this->files[$this->input_file_name]['error'],
+                        '',
+                        $this->files[$this->input_file_name]['name'],
+                        $this->files[$this->input_file_name]['size'],
+                        $this->files[$this->input_file_name]['type']
+                    );
                     return false;
             }
         }
@@ -650,7 +814,14 @@ class Upload
                 $this->files[$this->input_file_name]['tmp_name'] == null
             )
         ) {
-            $this->error_messages = array_merge($this->error_messages, array(static::__('You did not upload the file.')));
+            $this->setErrorMessage(
+                static::__('You did not upload the file.'),
+                'RDU_4',
+                '',
+                $this->files[$this->input_file_name]['name'],
+                $this->files[$this->input_file_name]['size'],
+                $this->files[$this->input_file_name]['type']
+            );
             return false;
         }
 
@@ -730,7 +901,14 @@ class Upload
         $file_name_explode = explode('.', $this->files[$this->input_file_name]['name']);
         if (!is_array($file_name_explode)) {
             unset($file_name_explode);
-            $this->error_messages = array_merge($this->error_messages, array(sprintf(static::__('Unable to validate extension for the file %s.'), $this->files[$this->input_file_name]['name'])));
+            $this->setErrorMessage(
+                sprintf(static::__('Unable to validate extension for the file %s.'), $this->files[$this->input_file_name]['name']),
+                'RDU_UNABLE_VALIDATE_EXT',
+                $this->files[$this->input_file_name]['name'],
+                $this->files[$this->input_file_name]['name'],
+                $this->files[$this->input_file_name]['size'],
+                $this->files[$this->input_file_name]['type']
+            );
             return false;
         }
         $file_extension = $file_name_explode[count($file_name_explode)-1];
@@ -739,7 +917,14 @@ class Upload
         // validate allowed extensions.
         if (is_array($this->allowed_file_extensions) && !in_array($file_extension, $this->allowed_file_extensions)) {
             unset($file_extension);
-            $this->error_messages = array_merge($this->error_messages, array(sprintf(static::__('You have uploaded the file that is not allowed extension. (%s)'), $this->files[$this->input_file_name]['name'])));
+            $this->setErrorMessage(
+                sprintf(static::__('You have uploaded the file that is not allowed extension. (%s)'), $this->files[$this->input_file_name]['name']),
+                'RDU_NOT_ALLOW_EXT',
+                $this->files[$this->input_file_name]['name'],
+                $this->files[$this->input_file_name]['name'],
+                $this->files[$this->input_file_name]['size'],
+                $this->files[$this->input_file_name]['type']
+            );
             return false;
         }
 
@@ -747,19 +932,40 @@ class Upload
         if (is_array($this->file_extensions_mime_types) && !empty($this->file_extensions_mime_types)) {
             if (!array_key_exists($file_extension, $this->file_extensions_mime_types)) {
                 unset($file_extension);
-                $this->error_messages = array_merge($this->error_messages, array(sprintf(static::__('Unable to validate the file extension and mime type. (%s). This file extension was not set in the &quot;file_extensions_mime_types&quot; property.'), $this->files[$this->input_file_name]['name'])));
+                $this->setErrorMessage(
+                    sprintf(static::__('Unable to validate the file extension and mime type. (%s). This file extension was not set in the &quot;file_extensions_mime_types&quot; property.'), $this->files[$this->input_file_name]['name']),
+                    'RDU_UNABLE_VALIDATE_EXT_AND_MIME',
+                    $this->files[$this->input_file_name]['name'],
+                    $this->files[$this->input_file_name]['name'],
+                    $this->files[$this->input_file_name]['size'],
+                    $this->files[$this->input_file_name]['type']
+                );
                 return false;
             } else {
                 $Finfo = new \finfo();
                 $file_mimetype = $Finfo->file($this->files[$this->input_file_name]['tmp_name'], FILEINFO_MIME_TYPE);
                 if (is_array($this->file_extensions_mime_types[$file_extension]) && !in_array($file_mimetype, $this->file_extensions_mime_types[$file_extension])) {
                     unset($file_extension, $Finfo);
-                    $this->error_messages = array_merge($this->error_messages, array(sprintf(static::__('The uploaded file has invalid mime type. (%s : %s).'), $this->files[$this->input_file_name]['name'], $file_mimetype)));
+                    $this->setErrorMessage(
+                        sprintf(static::__('The uploaded file has invalid mime type. (%s : %s).'), $this->files[$this->input_file_name]['name'], $file_mimetype),
+                        'RDU_INVALID_MIME',
+                        $this->files[$this->input_file_name]['name'] . ' : ' . $file_mimetype,
+                        $this->files[$this->input_file_name]['name'],
+                        $this->files[$this->input_file_name]['size'],
+                        $file_mimetype
+                    );
                     unset($file_mimetype);
                     return false;
                 } elseif (!is_array($this->file_extensions_mime_types[$file_extension])) {
                     unset($file_extension, $file_mimetype, $Finfo);
-                    $this->error_messages = array_merge($this->error_messages, array(static::__('Unable to validate mime type. The format of &quot;file_extensions_mime_types&quot; property is incorrect.')));
+                    $this->setErrorMessage(
+                        static::__('Unable to validate mime type. The format of &quot;file_extensions_mime_types&quot; property is incorrect.'),
+                        'RDU_UNABLE_VALIDATE_MIME',
+                        '',
+                        $this->files[$this->input_file_name]['name'],
+                        $this->files[$this->input_file_name]['size'],
+                        $this->files[$this->input_file_name]['type']
+                    );
                     return false;
                 }
                 unset($file_mimetype, $Finfo);
@@ -784,7 +990,14 @@ class Upload
         }
 
         if (is_array($this->files[$this->input_file_name]) && array_key_exists('size', $this->files[$this->input_file_name]) && $this->files[$this->input_file_name]['size'] > $this->max_file_size) {
-            $this->error_messages = array_merge($this->error_messages, array(sprintf(static::__('The uploaded file exceeds the max file size directive. (%s &gt; %s bytes).'), $this->files[$this->input_file_name]['name'], $this->max_file_size)));
+            $this->setErrorMessage(
+                sprintf(static::__('The uploaded file exceeds the max file size directive. (%s &gt; %s).'), $this->files[$this->input_file_name]['size'], $this->max_file_size),
+                'RDU_1',
+                $this->files[$this->input_file_name]['size'] . ' &gt; ' . $this->max_file_size,
+                $this->files[$this->input_file_name]['name'],
+                $this->files[$this->input_file_name]['size'],
+                $this->files[$this->input_file_name]['type']
+            );
             return false;
         }
 
