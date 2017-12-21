@@ -52,6 +52,22 @@ if (strtolower($_SERVER['REQUEST_METHOD']) == 'post') {
             echo '<p>'.$error_message.'</p>'."\n";
         }// endforeach;
     }
+
+    // To check for the errors and use your own text. (new in 2.0.1).
+    if (is_array($Upload->error_codes) && !empty($Upload->error_codes)) {
+       foreach ($Upload->error_codes as $errIndex => $errItem) {
+           if (isset($errItem['code'])) {
+               switch ($errItem['code']) {
+                   case 'RDU_1':
+                       echo 'You have uploaded the file that is larger than limit.';
+                       break;
+                   case 'RDU_xxx':
+                       // See more in error_codes property to see its array format and all available error codes.
+                       break;
+               }// endswitch;
+           }
+       }// endforeach;
+   }
 }
 ```
 
