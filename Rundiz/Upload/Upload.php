@@ -13,7 +13,7 @@ namespace Rundiz\Upload;
  * PHP upload class that is able to validate requirements and limitations, real file's mime type check, detect the errors and report.
  *
  * @package Upload
- * @version 2.0.1
+ * @version 2.0.2
  * @author Vee W.
  */
 class Upload
@@ -567,6 +567,16 @@ class Upload
             }
             unset($default_mime_types_file);
         }
+
+        if (is_array($this->file_extensions_mime_types)) {
+            // if mime types was set, change the keys to lower case.
+            $this->file_extensions_mime_types = array_change_key_case($this->file_extensions_mime_types, CASE_LOWER);
+        }
+
+        if (is_array($this->allowed_file_extensions)) {
+            // if allowed extensions was set, change the values to lower case.
+            $this->allowed_file_extensions = array_map('strtolower', $this->allowed_file_extensions);
+        }
     }// setupFileExtensionsMimeTypesForValidation
 
 
@@ -911,7 +921,7 @@ class Upload
             );
             return false;
         }
-        $file_extension = $file_name_explode[count($file_name_explode)-1];
+        $file_extension = strtolower($file_name_explode[count($file_name_explode)-1]);
         unset($file_name_explode);
 
         // validate allowed extensions.
@@ -944,7 +954,7 @@ class Upload
             } else {
                 $Finfo = new \finfo();
                 $file_mimetype = $Finfo->file($this->files[$this->input_file_name]['tmp_name'], FILEINFO_MIME_TYPE);
-                if (is_array($this->file_extensions_mime_types[$file_extension]) && !in_array($file_mimetype, $this->file_extensions_mime_types[$file_extension])) {
+                if (is_array($this->file_extensions_mime_types[$file_extension]) && !in_array(strtolower($file_mimetype), array_map('strtolower', $this->file_extensions_mime_types[$file_extension]))) {
                     unset($file_extension, $Finfo);
                     $this->setErrorMessage(
                         sprintf(static::__('The uploaded file has invalid mime type. (%s : %s).'), $this->files[$this->input_file_name]['name'], $file_mimetype),

@@ -71,18 +71,18 @@ class UploadTest extends \PHPUnit\Framework\TestCase
             'size' => filesize($this->temp_folder.'false-image.jpg'),
         );
         $this->file_51kbimage['filename'] = array(
-            'name' => '51KB-image.jpg',
+            'name' => '51KB-image.JPG',
             'type' => 'image/jpeg',
-            'tmp_name' => $this->temp_folder.'51KB-image.jpg',
+            'tmp_name' => $this->temp_folder.'51KB-image.JPG',
             'error' => 0,
-            'size' => filesize($this->temp_folder.'51KB-image.jpg'),
+            'size' => filesize($this->temp_folder.'51KB-image.JPG'),
         );
         $this->files_multiple['filename'] = array(
             'name' => array(
                 0 => 'text.txt',
                 1 => 'not-safe-text.txt',
                 2 => 'false-image.jpg',
-                3 => '51KB-image.jpg',
+                3 => '51KB-image.JPG',
             ),
             'type' => array(
                 0 => 'text/plain',
@@ -94,7 +94,7 @@ class UploadTest extends \PHPUnit\Framework\TestCase
                 0 => $this->temp_folder.'text.txt',
                 1 => $this->temp_folder.'not-safe-text.txt',
                 2 => $this->temp_folder.'false-image.jpg',
-                3 => $this->temp_folder.'51KB-image.jpg',
+                3 => $this->temp_folder.'51KB-image.JPG',
             ),
             'error' => array(
                 0 => 0,
@@ -106,7 +106,7 @@ class UploadTest extends \PHPUnit\Framework\TestCase
                 0 => filesize($this->temp_folder.'text.txt'),
                 1 => filesize($this->temp_folder.'not-safe-text.txt'),
                 2 => filesize($this->temp_folder.'false-image.jpg'),
-                3 => filesize($this->temp_folder.'51KB-image.jpg'),
+                3 => filesize($this->temp_folder.'51KB-image.JPG'),
             ),
         );
     }// setUp

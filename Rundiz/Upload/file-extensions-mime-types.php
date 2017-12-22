@@ -2,6 +2,8 @@
 /** 
  * Default file extensions and its mime types.
  * 
+ * To create your own extension => mime types, please write all keys and values in lower case only.
+ * 
  * @author Vee W.
  * @license http://opensource.org/licenses/MIT MIT
  */
