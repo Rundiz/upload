@@ -42,7 +42,7 @@ if (strtolower($_SERVER['REQUEST_METHOD']) == 'post') {
         echo '<p>Upload successfully.</p>';
     }
     if (is_array($uploaded_data) && !empty($uploaded_data)) {
-        echo '<pre>'.htmlspecialchars(stripslashes(var_export($uploaded_data, true))).'</pre>;
+        echo '<pre>'.htmlspecialchars(stripslashes(var_export($uploaded_data, true))).'</pre>';
     }
 
     // To check for the errors.
