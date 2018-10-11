@@ -28,6 +28,7 @@ class UploadTest extends \PHPUnit\Framework\TestCase
     private $file_dangertext;
     private $file_falseimage;
     private $file_51kbimage;
+    private $file_fakejpg_butpng;
     private $files_multiple;
 
 
@@ -71,42 +72,54 @@ class UploadTest extends \PHPUnit\Framework\TestCase
             'size' => filesize($this->temp_folder.'false-image.jpg'),
         );
         $this->file_51kbimage['filename'] = array(
-            'name' => '51KB-image.JPG',
+            'name' => '51KB-image.jpg',
             'type' => 'image/jpeg',
-            'tmp_name' => $this->temp_folder.'51KB-image.JPG',
+            'tmp_name' => $this->temp_folder.'51KB-image.jpg',
             'error' => 0,
-            'size' => filesize($this->temp_folder.'51KB-image.JPG'),
+            'size' => filesize($this->temp_folder.'51KB-image.jpg'),
+        );
+        $this->file_fakejpg_butpng['filename'] = array(
+            'name' => 'fakepng-butjpg.png',
+            'type' => 'image/jpeg',
+            'tmp_name' => $this->temp_folder.'fakepng-butjpg.png',
+            'error' => 0,
+            'size' => filesize($this->temp_folder.'fakepng-butjpg.png'),
         );
         $this->files_multiple['filename'] = array(
             'name' => array(
                 0 => 'text.txt',
                 1 => 'not-safe-text.txt',
                 2 => 'false-image.jpg',
-                3 => '51KB-image.JPG',
+                3 => '51KB-image.jpg',
+                4 => 'fakepng-butjpg.png',
             ),
             'type' => array(
                 0 => 'text/plain',
                 1 => 'text/plain',
                 2 => 'image/jpeg',
                 3 => 'image/jpeg',
+                4 => 'image/png',
             ),
             'tmp_name' => array(
                 0 => $this->temp_folder.'text.txt',
                 1 => $this->temp_folder.'not-safe-text.txt',
                 2 => $this->temp_folder.'false-image.jpg',
-                3 => $this->temp_folder.'51KB-image.JPG',
+                3 => $this->temp_folder.'51KB-image.jpg',
+                4 => $this->temp_folder.'fakepng-butjpg.png',
             ),
             'error' => array(
                 0 => 0,
                 1 => 0,
                 2 => 0,
                 3 => 0,
+                4 => 0,
             ),
             'size' => array(
                 0 => filesize($this->temp_folder.'text.txt'),
                 1 => filesize($this->temp_folder.'not-safe-text.txt'),
                 2 => filesize($this->temp_folder.'false-image.jpg'),
-                3 => filesize($this->temp_folder.'51KB-image.JPG'),
+                3 => filesize($this->temp_folder.'51KB-image.jpg'),
+                4 => filesize($this->temp_folder.'fakepng-butjpg.png'),
             ),
         );
     }// setUp
@@ -115,6 +128,7 @@ class UploadTest extends \PHPUnit\Framework\TestCase
     public function tearDown()
     {
         $this->file_51kbimage = null;
+        $this->file_fakejpg_butpng = null;
         $this->file_dangertext = null;
         $this->file_falseimage = null;
         $this->file_text = null;
@@ -195,6 +209,52 @@ class UploadTest extends \PHPUnit\Framework\TestCase
     }// testMaxFileSize
 
 
+    public function testMaxImageDimension()
+    {
+        $Upload = new \Rundiz\Upload\Tests\ExtendedUploadForTest('filename');
+
+        $_FILES = $this->file_51kbimage;
+        $Upload->setFilesPropertyForCheck();
+        $Upload->max_image_dimensions = array(500, 400);
+        $this->assertTrue($Upload->validateImageDimension());
+        $Upload->max_image_dimensions = array(400, 400);
+        $this->assertFalse($Upload->validateImageDimension());
+        $Upload->max_image_dimensions = array(500, 300);
+        $this->assertFalse($Upload->validateImageDimension());
+        $Upload->clear();
+
+        $_FILES = $this->file_text;
+        $Upload->setInputFileName('filename');
+        $Upload->setFilesPropertyForCheck();
+        $Upload->max_image_dimensions = array(500, 400);
+        $this->assertTrue($Upload->validateImageDimension());
+
+        $_FILES = $this->file_falseimage;
+        $Upload->setInputFileName('filename');
+        $Upload->setFilesPropertyForCheck();
+        $Upload->max_image_dimensions = array(500, 400);
+        $this->assertTrue($Upload->validateImageDimension());
+
+        unset($Upload);
+    }// testMaxImageDimension
+
+
+    public function testNewFileName()
+    {
+        $Upload = new \Rundiz\Upload\Tests\ExtendedUploadForTest('filename');
+        $the_new_file_name = 'TEST -= !@#$%^&*()_+ []\\ {}| ;\' :" ,./ <>? `~';
+        $expect_new_file_name = 'TEST -= #$^&()_+ [] {} ;\'  ,.  `~';
+
+        $_FILES = $this->file_text;
+        $Upload->setFilesPropertyForCheck();
+        $Upload->new_file_name = $the_new_file_name;
+        $Upload->setNewFileName();
+        $this->assertEquals($expect_new_file_name, $Upload->new_file_name);
+
+        unset($Upload);
+    }// testNewFileName
+
+
     public function testSecurityScan()
     {
         $Upload = new \Rundiz\Upload\Tests\ExtendedUploadForTest('filename');
@@ -216,45 +276,12 @@ class UploadTest extends \PHPUnit\Framework\TestCase
     }// testSecurityScan
 
 
-    public function testNewFileName()
-    {
-        $Upload = new \Rundiz\Upload\Tests\ExtendedUploadForTest('filename');
-        $the_new_file_name = 'TEST -= !@#$%^&*()_+ []\\ {}| ;\' :" ,./ <>? `~';
-        $expect_new_file_name = 'TEST -= #$^&()_+ [] {} ;\'  ,.  `~';
-
-        $_FILES = $this->file_text;
-        $Upload->setFilesPropertyForCheck();
-        $Upload->new_file_name = $the_new_file_name;
-        $Upload->setNewFileName();
-        $this->assertEquals($expect_new_file_name, $Upload->new_file_name);
-
-        unset($Upload);
-    }// testSecurityScan
-
-
-    public function testWebSafeFileName()
-    {
-        $Upload = new \Rundiz\Upload\Tests\ExtendedUploadForTest('filename');
-        $the_new_file_name = 'TEST -= !@#$%^&*()_+ []\\ {}| ;\' :" ,./ <>? `~';
-        $expect_new_file_name = 'TEST-_-';
-
-        $_FILES = $this->file_text;
-        $Upload->setFilesPropertyForCheck();
-        $Upload->new_file_name = $the_new_file_name;
-        $Upload->setNewFileName();
-        $Upload->setWebSafeFileName();
-        $this->assertEquals($expect_new_file_name, $Upload->new_file_name);
-
-        unset($expect_new_file_name, $the_new_file_name, $Upload);
-    }// testWebSafeFileName
-
-
     public function testUploadMultiple()
     {
         $_FILES = $this->files_multiple;
 
         $Upload = new \Rundiz\Upload\Tests\ExtendedUploadForTest('filename');
-        $Upload->allowed_file_extensions = array('jpg', 'txt');
+        $Upload->allowed_file_extensions = array('jpg', 'png', 'txt');
         $Upload->max_file_size = 60000;
         $default_mime_types_file = 'file-extensions-mime-types.php';
         if (is_file(dirname(dirname(__DIR__)).DIRECTORY_SEPARATOR.'Rundiz'.DIRECTORY_SEPARATOR.'Upload'.DIRECTORY_SEPARATOR.$default_mime_types_file)) {
@@ -269,12 +296,12 @@ class UploadTest extends \PHPUnit\Framework\TestCase
         $upload_result = $Upload->upload();
 
         $this->assertTrue($upload_result);
-        $this->assertGreaterThanOrEqual(2, count($Upload->error_messages));
+        $this->assertGreaterThanOrEqual(3, count($Upload->error_messages));
 
         $Upload->clear();
 
         $Upload->setInputFileName('filename');
-        $Upload->allowed_file_extensions = array('jpg', 'txt');
+        $Upload->allowed_file_extensions = array('jpg', 'png', 'txt');
         $Upload->file_extensions_mime_types = array();
         $Upload->max_file_size = 60000;
         $Upload->move_uploaded_to = $this->temp_folder;
@@ -315,6 +342,23 @@ class UploadTest extends \PHPUnit\Framework\TestCase
 
         unset($Upload, $upload_result);
     }// testUploadSingle
+
+
+    public function testWebSafeFileName()
+    {
+        $Upload = new \Rundiz\Upload\Tests\ExtendedUploadForTest('filename');
+        $the_new_file_name = 'TEST -= !@#$%^&*()_+ []\\ {}| ;\' :" ,./ <>? `~';
+        $expect_new_file_name = 'TEST-_-';
+
+        $_FILES = $this->file_text;
+        $Upload->setFilesPropertyForCheck();
+        $Upload->new_file_name = $the_new_file_name;
+        $Upload->setNewFileName();
+        $Upload->setWebSafeFileName();
+        $this->assertEquals($expect_new_file_name, $Upload->new_file_name);
+
+        unset($expect_new_file_name, $the_new_file_name, $Upload);
+    }// testWebSafeFileName
 
 
 }

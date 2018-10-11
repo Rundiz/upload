@@ -24,8 +24,9 @@ class Upload
      * @var array Allowed file extensions. Example: array('jpg', 'gif', 'png').
      */
     public $allowed_file_extensions;
+
     /**
-     * @var array The array set of file extensions and its valid mime types for check when process the uploaded files.<br>
+     * @var array|null The array set of file extensions and its valid mime types for check when process the uploaded files.<br>
      * Example:
      * <pre>
      * array(
@@ -33,42 +34,72 @@ class Upload
      *     'txt' => array('text/plain'),
      * );
      * </pre>
-     * If you don't want to validate mime type, set this property to an empty array. Example: $Upload->file_extensions_mime_types = array();
+     * If you don't want to validate mime type, set this property to an empty array. Example: `$Upload->file_extensions_mime_types = array();`
+     * Set to NULL to use default mime types in `setupFileExtensionsMimeTypesForValidation()` method.
      */
     public $file_extensions_mime_types;
+
+    /**
+     * @var array Contain all values from $_FILES['input_file_name'] for works with upload process. This will be very useful when upload multiple files.<br>
+     * Example:<br>
+     * <code>$Upload->files['input_file_name'];</code> is same as <code>$_FILES['input_file_name']</code>
+     */
+    protected $files = array();
+
+    /**
+     * @var string The input file name. ($_FILES['input_file_name']).
+     */
+    protected $input_file_name;
+
     /**
      * @var integer Set max file size to upload. This file size unit is in bytes only.
      */
     public $max_file_size;
+
+    /**
+     * @var array The array of max image width and height. The value must be array of width, height by order and the number must be integer. Example: `array(500, 300)` mean width 500 pixels and height 300 pixels. Set to empty array for not validate.
+     */
+    public $max_image_dimensions = array();
+
+    /**
+     * @var array The queue for move uploaded file(s). This is very useful when upload multiple files.
+     */
+    protected $move_uploaded_queue = array();
+
+    /**
+     * @var string Path to store files that was uploaded to move to. Do not end with trailing slash.
+     */
+    public $move_uploaded_to = '.';
+
     /**
      * @var string Set new file name, just set the file name only. No extension.<br>
      * Important! This property is not recommend to set it if you upload multiple files with same input file name. It is recommended to leave this as null and set overwrite property to true or false.<br>
      * If you want to set the name while upload multiple files, it is recommended that you set overwrite property to false.
      */
     public $new_file_name;
+
     /**
      * @var boolean To overwrite the uploaded file set it to true, otherwise set it to false.
      */
     public $overwrite = false;
+
     /**
      * @var boolean To rename uploaded file name to safe for web set it to true, otherwise set it to false.<br>
      * The safe for web file name is English and number chacters, no space (replaced with dash), no special characters, allowed dash and underscore.
      */
     public $web_safe_file_name = true;
+
     /**
      * @var boolean Set to true to enable security scan such as php open tag (<?php). Set to false to not scan. This is optional security.
      */
     public $security_scan = false;
+
     /**
      * @var boolean If you upload multiple files and there is at least one file that did not pass the validation, do you want it to stop?<br>
      * Set to true to stop and delete all uploaded files (all uploaded files must pass validation).<br>
      * Set to false to skip the error files (failed validation files are report as error, success validation files continue the process).
      */
     public $stop_on_failed_upload_multiple = true;
-    /**
-     * @var string Path to store files that was uploaded to move to. Do not end with trailing slash.
-     */
-    public $move_uploaded_to = '.';
 
     /**
      * Contain error codes.
@@ -102,7 +133,9 @@ class Upload
      * RDU_NOT_ALLOW_EXT = The uploaded file is not in allowed extensions.<br>
      * RDU_UNABLE_VALIDATE_EXT_AND_MIME = Unable to validate file extension and mime type.<br>
      * RDU_INVALID_MIME = The uploaded file has invalid mime type.<br>
-     * RDU_UNABLE_VALIDATE_MIME = Unable to validate mime type.
+     * RDU_UNABLE_VALIDATE_MIME = Unable to validate mime type.<br>
+     * RDU_IMG_DIMENSION_OVER_MAX = The uploaded image file dimensions are larger than max dimensions allowed.<br>
+     * RDU_IMG_NO_OR_MULTIPLE_IMAGES = The uploaded file may contain no image or multiple image. Reference: ( http://php.net/getimagesize ).
      * 
      * For the RDU_1 to RDU_8 use PHP upload errors. ( http://php.net/manual/en/features.file-upload.errors.php ).<br>
      * RDU_1 = The uploaded file exceeds the max file size directive.<br>
@@ -122,21 +155,6 @@ class Upload
      * @var array If there is at least one error message it will be set to here.
      */
     public $error_messages = array();
-
-    /**
-     * @var string The input file name. ($_FILES['input_file_name']).
-     */
-    protected $input_file_name;
-    /**
-     * @var array Contain all values from $_FILES['input_file_name'] for works with upload process. This will be very useful when upload multiple files.<br>
-     * Example:<br>
-     * <code>$Upload->files['input_file_name'];</code> is same as <code>$_FILES['input_file_name']</code>
-     */
-    protected $files = array();
-    /**
-     * @var array The queue for move uploaded file(s). This is very useful when upload multiple files.
-     */
-    protected $move_uploaded_queue = array();
 
 
     /**
@@ -187,6 +205,7 @@ class Upload
         $this->files = array();
         $this->input_file_name = null;
         $this->max_file_size = null;
+        $this->max_image_dimensions = array();
         $this->move_uploaded_queue = array();
         $this->move_uploaded_to = '.';
         $this->new_file_name = null;
@@ -399,7 +418,7 @@ class Upload
                 $file_content = file_get_contents($this->files[$this->input_file_name]['tmp_name']);
 
                 // scan php open tag
-                if (strpos($file_content, '<?php') !== false) {
+                if (stripos($file_content, '<?php') !== false || stripos($file_content, '<?=') !== false) {
                     // found php open tag. (<?php).
                     $this->setErrorMessage(
                         sprintf(static::__('Error! Found php embedded in the uploaded file. (%s).'), $this->files[$this->input_file_name]['name']),
@@ -413,7 +432,7 @@ class Upload
                 }
 
                 // scan cgi/perl
-                if (strpos($file_content, '#!/') !== false && strpos($file_content, '/perl') !== false) {
+                if (stripos($file_content, '#!/') !== false && stripos($file_content, '/perl') !== false) {
                     // found cgi/perl header.
                     $this->setErrorMessage(
                         sprintf(static::__('Error! Found cgi/perl embedded in the uploaded file. (%s).'), $this->files[$this->input_file_name]['name']),
@@ -484,6 +503,10 @@ class Upload
      */
     public function setInputFileName($input_file_name)
     {
+        if (!is_scalar($input_file_name)) {
+            throw new \InvalidArgumentException(static::__('The input file name must be string.'));
+        }
+
         $this->input_file_name = $input_file_name;
     }// setInputFileName
 
@@ -611,6 +634,10 @@ class Upload
      */
     public function testGetUploadedMimetype($input_file_name = null)
     {
+        if (!is_scalar($input_file_name)) {
+            throw new \InvalidArgumentException(static::__('The input file name must be string.'));
+        }
+
         if ($input_file_name == null) {
             $input_file_name = $this->input_file_name;
         }
@@ -686,6 +713,7 @@ class Upload
         }
 
         if (isset($_FILES[$this->input_file_name]['name']) && is_array($_FILES[$this->input_file_name]['name'])) {
+            // if multiple file upload.
             foreach ($_FILES[$this->input_file_name]['name'] as $key => $value) {
                 $this->files[$this->input_file_name]['input_file_key'] = $key;
                 $this->files[$this->input_file_name]['name'] = $_FILES[$this->input_file_name]['name'][$key];
@@ -704,6 +732,7 @@ class Upload
             }// endforeach;
             unset($key, $value);
         } else {
+            // if single file upload.
             $this->files[$this->input_file_name] = $_FILES[$this->input_file_name];
             $this->files[$this->input_file_name]['input_file_key'] = 0;
 
@@ -844,6 +873,13 @@ class Upload
 
         // validate max file size.
         $result = $this->validateFileSize();
+        if ($result !== true) {
+            return false;
+        }
+        unset($result);
+
+        // validate max image dimension.
+        $result = $this->validateImageDimension();
         if ($result !== true) {
             return false;
         }
@@ -1009,6 +1045,20 @@ class Upload
                 $this->files[$this->input_file_name]['type']
             );
             return false;
+        } else {
+            if (is_array($this->files[$this->input_file_name]) && array_key_exists('tmp_name', $this->files[$this->input_file_name]) && function_exists('filesize')) {
+                if (filesize($this->files[$this->input_file_name]['tmp_name']) > $this->max_file_size) {
+                    $this->setErrorMessage(
+                        sprintf(static::__('The uploaded file exceeds the max file size directive. (%s &gt; %s).'), $this->files[$this->input_file_name]['size'], $this->max_file_size),
+                        'RDU_1',
+                        $this->files[$this->input_file_name]['size'] . ' &gt; ' . $this->max_file_size,
+                        $this->files[$this->input_file_name]['name'],
+                        $this->files[$this->input_file_name]['size'],
+                        $this->files[$this->input_file_name]['type']
+                    );
+                    return false;
+                }
+            }
         }
 
         return true;
@@ -1016,7 +1066,81 @@ class Upload
 
 
     /**
+     * Validate image dimension if uploaded file is image and size is smaller than specified `max_image_dimensions`.
+     * 
+     * @return boolean Return true on success, false on failure. 
+     * Also return true on these conditions.
+     * - No `max_image_dimensions` property set or it was set to empty array.
+     * - The `getimagesize()` function return `false`. It means that this uploaded file is NOT an image. The developers need to validate it again one by one from uploaded files.
+     * - Unable to find upload temp file. This is for make the upload progress passed and ready to move uploaded file. The developers need to validate it again one by one from uploaded files.
+     * Also return false on this condition.
+     * - The `getimagesize()` function return 0 in width and height as noted in this page ( http://php.net/getimagesize ).
+     */
+    protected function validateImageDimension()
+    {
+        if (empty($this->max_image_dimensions)) {
+            return true;
+        }
+
+        if (
+            is_array($this->files[$this->input_file_name]) && 
+            array_key_exists('tmp_name', $this->files[$this->input_file_name]) &&
+            is_file($this->files[$this->input_file_name]['tmp_name'])
+        ) {
+            $image = getimagesize($this->files[$this->input_file_name]['tmp_name']);
+            if ($image === false) {
+                // this uploaded file is NOT an image. It is possible that user upload mixed file types such as text with jpeg.
+                return true;
+            } elseif (is_array($image) && count($image) >= 2) {
+                if (
+                    $image[0] <= $this->max_image_dimensions[0] &&
+                    $image[1] <= $this->max_image_dimensions[1]
+                ) {
+                    // if image dimensions are smaller or equal to max.
+                    return true;
+                } elseif (
+                    $image[0] <= 0 ||
+                    $image[1] <= 0
+                ) {
+                    // Some formats may contain no image or may contain multiple images. 
+                    // In these cases, getimagesize() might not be able to properly determine the image size. 
+                    // getimagesize() will return zero for width and height in these cases.
+                    // Reference: http://php.net/getimagesize
+                    $this->setErrorMessage(
+                        sprintf(static::__('The uploaded image contain no image or multiple images. (%s).'), $image[0] . 'x' . $image[1]),
+                        'RDU_IMG_NO_OR_MULTIPLE_IMAGES',
+                        $image[0] . 'x' . $image[1],
+                        $this->files[$this->input_file_name]['name'],
+                        $this->files[$this->input_file_name]['size'],
+                        $this->files[$this->input_file_name]['type']
+                    );
+                    return false;
+                } else {
+                    // if image dimensions are larger than max.
+                    $this->setErrorMessage(
+                        sprintf(static::__('The uploaded image dimensions are larger than allowed max dimensions. (%s &gt; %s).'), $image[0] . 'x' . $image[1], $this->max_image_dimensions[0] . 'x' . $this->max_image_dimensions[1]),
+                        'RDU_IMG_DIMENSION_OVER_MAX',
+                        $image[0] . 'x' . $image[1] . ' &gt; ' . $this->max_image_dimensions[0] . 'x' . $this->max_image_dimensions[1],
+                        $this->files[$this->input_file_name]['name'],
+                        $this->files[$this->input_file_name]['size'],
+                        $this->files[$this->input_file_name]['type']
+                    );
+                    return false;
+                }
+            } else {
+                // this uploaded file is NOT an image (return array does not meet requirement). It is possible that user upload mixed file types such as text with jpeg.
+                return true;
+            }
+        }
+
+        return true;
+    }// validateImageDimension
+
+
+    /**
      * Validate that these options properties has properly set in the correct type.
+     * 
+     * @throws Exception Throw errors on invalid property type.
      */
     protected function validateOptionsProperties()
     {
@@ -1034,8 +1158,28 @@ class Upload
             $this->max_file_size = null;
         }
 
-        if ($this->move_uploaded_to == null) {
-            $this->move_uploaded_to = '.';
+        if (
+            !is_array($this->max_image_dimensions) || 
+            (
+                is_array($this->max_image_dimensions) && 
+                (
+                    count($this->max_image_dimensions) != 2 ||
+                    (
+                        count($this->max_image_dimensions) == 2 &&
+                        count($this->max_image_dimensions) != count($this->max_image_dimensions, COUNT_RECURSIVE)
+                    )
+                )
+            )
+        ) {
+            $this->max_image_dimensions = array();
+        } else {
+            if (!is_int($this->max_image_dimensions[0]) || !is_int($this->max_image_dimensions[1])) {
+                $this->max_image_dimensions = array();
+            }
+        }
+
+        if (empty($this->move_uploaded_to)) {
+            trigger_error(static::__('The move_uploaded_to property was not set'), E_USER_ERROR);
         }
 
         if (!is_string($this->new_file_name) && $this->new_file_name != null) {

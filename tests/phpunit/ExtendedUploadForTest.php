@@ -119,4 +119,16 @@ class ExtendedUploadForTest extends \Rundiz\Upload\Upload
     }// validateFileSize
 
 
+    public function validateImageDimension()
+    {
+        return parent::validateImageDimension();
+    }// validateImageDimension
+
+
+    public function validateOptionsProperties()
+    {
+        return parent::validateOptionsProperties();
+    }// validateOptionsProperties
+
+
 }

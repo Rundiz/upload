@@ -15,6 +15,13 @@ if (strtolower($_SERVER['REQUEST_METHOD']) == 'post') {
     if (isset($_POST['upload_max_file_size']) && $_POST['upload_max_file_size'] != null) {
         $Upload->max_file_size = intval($_POST['upload_max_file_size']);
     }
+    if (isset($max_image_dimensions) && !empty($max_image_dimensions)) {
+        $exp_max_image_dimensions = explode(',', $max_image_dimensions);
+        if (is_array($exp_max_image_dimensions) && count($exp_max_image_dimensions) >= 2 && is_numeric($exp_max_image_dimensions[0]) && is_numeric($exp_max_image_dimensions[1])) {
+            $Upload->max_image_dimensions = array(intval($exp_max_image_dimensions[0]), intval($exp_max_image_dimensions[1]));
+        }
+        unset($exp_max_image_dimensions);
+    }
     if (isset($_POST['new_file_name'])) {
         $Upload->new_file_name = htmlspecialchars_decode(trim($_POST['new_file_name']));
     }
@@ -100,6 +107,11 @@ if (!isset($stop_on_failed_upload_multiple)) {
                             </div>
                         </div>
                         <div class="form-group">
+                            <label>Max image dimensions</label>
+                            <input type="text" name="max_image_dimensions" value="<?php if (isset($max_image_dimensions)) {echo htmlspecialchars($max_image_dimensions);} ?>" placeholder="width,height" class="form-control">
+                            <p class="help-block">Max image dimensions must be 2 numbers separate by comma. Example: 500,300 is width 500 and height 300 pixels.</p>
+                        </div>
+                        <div class="form-group">
                             <label>New file name (without file .extension)</label>
                             <input type="text" name="new_file_name" value="<?php if (isset($new_file_name)) {echo htmlspecialchars($new_file_name);} ?>" class="form-control">
                             <p class="help-block">For file name limitation test, I suggest you to name this to <strong><?php echo htmlspecialchars('TEST -= !@#$%^&*()_+ []\\ {}| ;\' :" ,./ <>? `~'); ?></strong></p>
@@ -147,6 +159,11 @@ if (!isset($stop_on_failed_upload_multiple)) {
                                 <input type="text" name="upload_max_file_size" value="<?php if (isset($upload_max_file_size)) {echo htmlspecialchars($upload_max_file_size);} ?>" class="form-control">
                                 <span class="input-group-addon">Bytes</span>
                             </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Max image dimensions</label>
+                            <input type="text" name="max_image_dimensions" value="<?php if (isset($max_image_dimensions)) {echo htmlspecialchars($max_image_dimensions);} ?>" placeholder="width,height" class="form-control">
+                            <p class="help-block">Max image dimensions must be 2 numbers separate by comma. Example: 500,300 is width 500 and height 300 pixels.</p>
                         </div>
                         <div class="form-group">
                             <label>New file name (without file .extension)</label>

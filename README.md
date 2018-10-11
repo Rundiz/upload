@@ -22,6 +22,9 @@ if (strtolower($_SERVER['REQUEST_METHOD']) == 'post') {
     $Upload->allowed_file_extensions = array('gif', 'jpg', 'jpeg', 'png');
     // Max file size is 900KB.
     $Upload->max_file_size = 900000;
+    // Max image dimensions (width, height) in pixels. The array values must be integer only.
+    // Please note that this cannot check all uploaded files correctly. For example: You allowed to upload txt and jpg, the txt file will be pass validated for max dimension. To make it more precise, please check it again file by file after move uploaded files are completed done.
+    $Upload->max_image_dimensions = array(1280, 720);
     // You can name the uploaded file to new name or leave this to use its default name. Do not included extension into it.
     $Upload->new_file_name = 'new-uploaded-name';
     // Overwrite existing file? true = yes, false = no
