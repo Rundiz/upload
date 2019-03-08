@@ -13,7 +13,7 @@ namespace Rundiz\Upload;
  * PHP upload class that is able to validate requirements and limitations, real file's mime type check, detect the errors and report.
  *
  * @package Upload
- * @version 2.0.3
+ * @version 2.0.4
  * @author Vee W.
  */
 class Upload
@@ -436,6 +436,31 @@ class Upload
                     // found cgi/perl header.
                     $this->setErrorMessage(
                         sprintf(static::__('Error! Found cgi/perl embedded in the uploaded file. (%s).'), $this->files[$this->input_file_name]['name']),
+                        'RDU_SEC_ERR_CGI',
+                        $this->files[$this->input_file_name]['name'],
+                        $this->files[$this->input_file_name]['name'],
+                        $this->files[$this->input_file_name]['size'],
+                        $this->files[$this->input_file_name]['type']
+                    );
+                    return false;
+                }
+
+                // scan shell script
+                // reference: https://en.wikipedia.org/wiki/Shell_script 
+                // https://stackoverflow.com/questions/10591086/shell-script-headers-bin-sh-vs-bin-csh
+                // https://www.shellscript.sh/
+                if (
+                    stripos($file_content, '#!/') !== false && 
+                    (
+                        stripos($file_content, '/bin/sh') !== false ||
+                        stripos($file_content, '/bin/bash') !== false ||
+                        stripos($file_content, '/bin/csh') !== false ||
+                        stripos($file_content, '/bin/tcsh') !== false
+                    )
+                ) {
+                    // found shell script.
+                    $this->setErrorMessage(
+                        sprintf(static::__('Error! Found shell script embedded in the uploaded file. (%s).'), $this->files[$this->input_file_name]['name']),
                         'RDU_SEC_ERR_CGI',
                         $this->files[$this->input_file_name]['name'],
                         $this->files[$this->input_file_name]['name'],
