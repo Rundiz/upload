@@ -20,7 +20,7 @@ $predefinedErrorMessages = $Upload->predefinedErrorMessages;
                     <pre><?php 
                     if (isset($predefinedErrorMessages) && is_array($predefinedErrorMessages)) {
                         foreach ($predefinedErrorMessages as $key => $errorMessage) {
-                            echo 'noop__(\'' . $errorMessage . '\');' . PHP_EOL;
+                            echo 'noop__(\'' . htmlspecialchars($errorMessage, ENT_QUOTES) . '\');' . PHP_EOL;
                         }// endforeach;
                         unset($key, $errorMessage);
                     }// endif; 
