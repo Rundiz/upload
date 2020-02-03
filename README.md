@@ -77,7 +77,10 @@ if (strtolower($_SERVER['REQUEST_METHOD']) == 'post') {
         echo '<h3>Error!</h3>';
         foreach ($Upload->errorMessagesRaw as $error_message) {
             if (isset($error_message['message']) && isset($error_message['replaces'])) {
-                echo '<p>'.vprintf(gettext($error_message['message']), $error_message['replaces']).'</p>'."\n";
+                echo '<p>'.vprintf(
+                    gettext($error_message['message']), // this example use gettext to translate text.
+                    $error_message['replaces']
+                ).'</p>'."\n";
             }
         }// endforeach;
     }
