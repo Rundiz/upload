@@ -13,7 +13,7 @@ namespace Rundiz\Upload;
  * PHP upload class that is able to validate requirements and limitations, real file's mime type check, detect the errors and report.
  *
  * @package Upload
- * @version 2.0.5
+ * @version 2.0.6
  * @author Vee W.
  * 
  * @property-read array $predefinedErrorMessages Pre-defined error messages.
@@ -566,7 +566,7 @@ class Upload
 
         $error_messages = (isset($this->predefinedErrorMessages[$code]) ? $this->predefinedErrorMessages[$code] : '');
 
-        $this->errorMessagesRaw[] = array('message' => $errorAttributes, 'replaces' => $replaceValues);
+        $this->errorMessagesRaw[] = array('message' => $error_messages, 'replaces' => $replaceValues);
         $this->error_messages[] = vsprintf($error_messages, $replaceValues);
         $this->error_codes[] = array(
             'code' => $code,
