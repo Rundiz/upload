@@ -15,6 +15,7 @@
                         <li><a href="test-single-file-upload.php">Test upload single file.</a></li>
                         <li><a href="test-multiple-file-upload.php">Test upload multiple file.</a></li>
                         <li><a href="test-full-customize-file-upload.php">Test full customization file upload.</a></li>
+                        <li><a href="test-gettext-for-translations.php">Test get text for translations.</a></li>
                     </ul>
                     <a href="clear-uploaded-files.php" class="btn btn-danger" onclick="return confirm('Are you sure to delete all uploaded files?');">Clear all uploaded files.</a>
                 </div>

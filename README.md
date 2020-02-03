@@ -71,6 +71,16 @@ if (strtolower($_SERVER['REQUEST_METHOD']) == 'post') {
            }
        }// endforeach;
    }
+
+    // To use your translation from raw error message in this class. (new in 2.0.5).
+    if (is_array($Upload->error_messages) && !empty($Upload->error_messages)) {
+        echo '<h3>Error!</h3>';
+        foreach ($Upload->errorMessagesRaw as $error_message) {
+            if (isset($error_message['message']) && isset($error_message['replaces'])) {
+                echo '<p>'.vprintf(gettext($error_message['message']), $error_message['replaces']).'</p>'."\n";
+            }
+        }// endforeach;
+    }
 }
 ```
 

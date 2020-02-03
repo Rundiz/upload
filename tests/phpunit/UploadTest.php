@@ -137,6 +137,17 @@ class UploadTest extends \PHPUnit\Framework\TestCase
     }// tearDown
 
 
+    public function testGetDefaultFileExtensionsMimeTypes()
+    {
+        $Upload = new \Rundiz\Upload\Upload('filename');
+
+        $this->assertTrue(is_array($Upload->getDefaultFileExtensionsMimeTypes()));
+        $this->assertArraySubset(array('txt' => array('text/plain')), $Upload->getDefaultFileExtensionsMimeTypes());
+
+        unset($Upload);
+    }// testGetDefaultFileExtensionsMimeTypes
+
+
     public function testGetUploadMimeType()
     {
         $Upload = new \Rundiz\Upload\Upload('filename');
@@ -276,6 +287,9 @@ class UploadTest extends \PHPUnit\Framework\TestCase
     }// testSecurityScan
 
 
+    /**
+     * @group upmultiple
+     */
     public function testUploadMultiple()
     {
         $_FILES = $this->files_multiple;
@@ -295,8 +309,9 @@ class UploadTest extends \PHPUnit\Framework\TestCase
         $Upload->web_safe_file_name = true;
         $upload_result = $Upload->upload();
 
+        $this->assertCount(5, $_FILES['filename']);
         $this->assertTrue($upload_result);
-        $this->assertGreaterThanOrEqual(3, count($Upload->error_messages));
+        $this->assertGreaterThanOrEqual(3, count($Upload->error_messages));// not-safe-text.txt false-image.jpg fakepng-butjpg.png
 
         $Upload->clear();
 

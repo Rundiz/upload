@@ -56,10 +56,18 @@ class ExtendedUploadForTest extends \Rundiz\Upload\Upload
 
         // verify that location where the uploaded file(s) will be moved to is writable.
         if (!is_dir($this->move_uploaded_to)) {
-            $this->error_messages = array_merge($this->error_messages, array(static::__('The target location where the uploaded file(s) will be moved to is not folder or directory.')));
+            $this->setErrorMessage(
+                'RDU_MOVE_UPLOADED_TO_NOT_DIR',
+                '',
+                $this->move_uploaded_to
+            );
             return false;
         } elseif (is_dir($this->move_uploaded_to) && !is_writable($this->move_uploaded_to)) {
-            $this->error_messages = array_merge($this->error_messages, array(static::__('The target location where the uploaded file(s) will be moved to is not writable. Please check the folder permission.')));
+            $this->setErrorMessage(
+                'RDU_MOVE_UPLOADED_TO_NOT_WRITABLE',
+                '',
+                $this->move_uploaded_to
+            );
             return false;
         } else {
             // solve the move uploaded to as a real path.
@@ -67,6 +75,7 @@ class ExtendedUploadForTest extends \Rundiz\Upload\Upload
         }
 
         if (isset($_FILES[$this->input_file_name]['name']) && is_array($_FILES[$this->input_file_name]['name'])) {
+            // if multiple file upload.
             foreach ($_FILES[$this->input_file_name]['name'] as $key => $value) {
                 $this->files[$this->input_file_name]['input_file_key'] = $key;
                 $this->files[$this->input_file_name]['name'] = $_FILES[$this->input_file_name]['name'][$key];
@@ -78,13 +87,14 @@ class ExtendedUploadForTest extends \Rundiz\Upload\Upload
                 $result = $this->uploadSingleFile();
 
                 if ($result == false && $this->stop_on_failed_upload_multiple === true) {
-                    // it was set to sop on failed to upload multiple file. return false.
+                    // it was set to stop on failed to upload multiple file. return false.
                     unset($result);
                     return false;
                 }
             }// endforeach;
             unset($key, $value);
         } else {
+            // if single file upload.
             $this->files[$this->input_file_name] = $_FILES[$this->input_file_name];
             $this->files[$this->input_file_name]['input_file_key'] = 0;
 
