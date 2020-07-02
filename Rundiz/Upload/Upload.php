@@ -13,7 +13,7 @@ namespace Rundiz\Upload;
  * PHP upload class that is able to validate requirements and limitations, real file's mime type check, detect the errors and report.
  *
  * @package Upload
- * @version 2.0.6
+ * @version 2.0.7
  * @author Vee W.
  * 
  * @property-read array $predefinedErrorMessages Pre-defined error messages.
@@ -813,8 +813,24 @@ class Upload
             unset($key, $value);
         } else {
             // if single file upload.
-            $this->files[$this->input_file_name] = $_FILES[$this->input_file_name];
+            if (isset($_FILES[$this->input_file_name])) {
+                // if $_FILES['inputname'] exists. this should be normal situation.
+                $fileUploaded = $_FILES[$this->input_file_name];
+            } else {
+                // if $_FILES['inputname'] is not exists. this is weird situation but can be happens.
+                // build the array that same as $_FILES for it.
+                $fileUploaded = array(
+                    'name' => '',
+                    'type' => '',
+                    'tmp_name' => '',
+                    'error' => (int) 4,
+                    'size' => (int) 0,
+                );
+            }
+
+            $this->files[$this->input_file_name] = $fileUploaded;
             $this->files[$this->input_file_name]['input_file_key'] = 0;
+            unset($fileUploaded);
 
             $result = $this->uploadSingleFile();
         }

@@ -333,6 +333,23 @@ class UploadTest extends \PHPUnit\Framework\TestCase
     }// testUploadMultiple
 
 
+    public function testUploadNotSet()
+    {
+        // will not set $_FILES and must not contains any error.
+        unset($_FILES);
+
+        $Upload = new \Rundiz\Upload\Tests\ExtendedUploadForTest('filename');
+        $Upload->upload();
+
+        $expect = array(
+            array(
+                'code' => 'RDU_4',
+            )
+        );
+        $this->assertArraySubset($expect, $Upload->error_codes);
+    }// testUploadNotSet
+
+
     public function testUploadSingle()
     {
         $_FILES = $this->file_51kbimage;
