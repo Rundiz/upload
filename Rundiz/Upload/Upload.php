@@ -13,7 +13,7 @@ namespace Rundiz\Upload;
  * PHP upload class that is able to validate requirements and limitations, real file's mime type check, detect the errors and report.
  *
  * @package Upload
- * @version 2.0.7
+ * @version 2.0.8
  * @author Vee W.
  * 
  * @property-read array $predefinedErrorMessages Pre-defined error messages.
@@ -701,6 +701,12 @@ class Upload
         $this->new_file_name = preg_replace('#[^\da-z\-_]#iu', '', $this->new_file_name);
         // replace multiple dashes to one dash.
         $this->new_file_name = preg_replace('#-{2,}#', '-', $this->new_file_name);
+
+        // use random name if it becomes empty name.
+        // @since 2.0.8
+        if (empty($this->new_file_name)) {
+            $this->setNewFileNameToRandom();
+        }
     }// setWebSafeFileName
 
 

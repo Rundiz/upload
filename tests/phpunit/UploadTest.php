@@ -390,6 +390,24 @@ class UploadTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expect_new_file_name, $Upload->new_file_name);
 
         unset($expect_new_file_name, $the_new_file_name, $Upload);
+
+        $Upload = new \Rundiz\Upload\Tests\ExtendedUploadForTest('filename');
+        $_FILES = array(
+            'filename' => array(
+                'name' => 'ชื่อไฟล์ภาษาไทย.jpg',
+                'type' => 'image/jpeg',
+                'tmp_name' => __DIR__.DIRECTORY_SEPARATOR.'temp'.DIRECTORY_SEPARATOR . 'ชื่อไฟล์ภาษาไทย.jpg',
+                'error' => 0,
+                'size' => 51000,
+            ),
+        );
+        $Upload->setFilesPropertyForCheck();
+        $Upload->new_file_name = null;
+        $Upload->setNewFileName();
+        $Upload->setWebSafeFileName();
+        $this->assertNotSame('', $Upload->new_file_name);
+
+        unset($Upload);
     }// testWebSafeFileName
 
 
