@@ -92,10 +92,13 @@ class ThrowErrorTest extends \PHPUnit\Framework\TestCase
 
 
     /**
-     * @expectedException PHPUnit_Framework_Error
+     * @//expectedException PHPUnit\Framework\Error // cause reflection class not exists error.
+     * 
+     * @link https://blog.ijun.org/2017/04/reflectionexception-class.html Fix the errors.
      */
     public function testMoveUploadedToError()
     {
+        $this->expectException(\PHPUnit\Framework\Error\Error::class);
         $_FILES = $this->file_text;
 
         $Upload = new \Rundiz\Upload\Upload('filename');
