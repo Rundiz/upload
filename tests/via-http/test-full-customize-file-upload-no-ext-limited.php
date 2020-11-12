@@ -67,7 +67,7 @@ if (!isset($stop_on_failed_upload_multiple)) {
         <div class="container">
             <div class="row">
                 <div class="col-xs-12">
-                    <h1>Test full customization file upload.</h1>
+                    <h1>Test full customization file upload without extension limited.</h1>
                     <?php if (isset($upload_result) && $upload_result === true) { ?> 
                     <div class="alert alert-success">Upload successfully.</div>
                     <?php }// endif upload result ?> 
