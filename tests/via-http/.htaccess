@@ -5,6 +5,8 @@
 	php_value upload_max_filesize 1000M
 	php_value post_max_size 1020M
 	#don't foget to modify `FcgidMaxRequestLen` in your Apache config file to match the limit above.
+
+	php_value memory_limit 512M
 	
 	# disable magic quote
 	php_flag magic_quotes_gpc Off
@@ -17,6 +19,8 @@
 	php_value upload_max_filesize 1000M
 	php_value post_max_size 1020M
 	#don't foget to modify `FcgidMaxRequestLen` in your Apache config file to match the limit above.
+
+	php_value memory_limit 512M
 	
 	# disable magic quote
 	php_flag magic_quotes_gpc Off
