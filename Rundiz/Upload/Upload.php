@@ -473,7 +473,7 @@ class Upload
                 $file_content = file_get_contents($this->files[$this->input_file_name]['tmp_name']);
 
                 // scan php open tag
-                if (stripos($file_content, '<?php') !== false || stripos($file_content, '<?=') !== false) {
+                if (stripos($file_content, '<?php') !== false) {
                     // found php open tag. (<?php).
                     $this->setErrorMessage(
                         'RDU_SEC_ERR_PHP',
