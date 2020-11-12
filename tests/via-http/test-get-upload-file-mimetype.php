@@ -25,12 +25,27 @@ if (strtolower($_SERVER['REQUEST_METHOD']) == 'post') {
                     </div>
                     <?php }// endif; ?> 
                     <form method="post" enctype="multipart/form-data">
-                        <input type="file" name="file_get_mime">
+                        <input id="file_get_mime" type="file" name="file_get_mime">
                         <button type="submit" class="btn btn-primary">Get file's mime type.</button>
+                        <p class="help-block">Open browser's console to see more info for client side.</p>
                     </form>
                 </div>
             </div>
         </div>
+        <script type="application/javascript">
+            // @link https://stackoverflow.com/questions/18299806/how-to-check-file-mime-type-with-javascript-before-upload Original source code.
+            document.addEventListener('change', function(event) {
+                if (event.target.id === 'file_get_mime') {
+                    event.preventDefault();
+                    let inputFile = event.target;
+                    let inputFileFiles = (inputFile ? inputFile.files : []);
+                    for (let i = 0, n = inputFileFiles.length; i < n; i++) {
+                        console.log("Filename: " + inputFileFiles[i].name);
+                        console.log("Type: " + inputFileFiles[i].type);
+                    }
+                }
+            });
+        </script>
     </body>
 </html>
 <?php
