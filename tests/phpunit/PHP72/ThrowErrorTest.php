@@ -1,7 +1,8 @@
 <?php
 
 
-namespace Rundiz\Upload\Tests;
+namespace Rundiz\Upload\Tests\PHP72;
+
 
 class ThrowErrorTest extends \PHPUnit\Framework\TestCase
 {
@@ -9,6 +10,11 @@ class ThrowErrorTest extends \PHPUnit\Framework\TestCase
 
     public function __destruct()
     {
+        if (empty($this->temp_folder) || stripos($this->temp_folder, DIRECTORY_SEPARATOR . 'temp') === false) {
+            // on error, the temp folder property will not set, do nothing here.
+            return ;
+        }
+
         $files = glob($this->temp_folder.'*.*');
         if (is_array($files)) {
             foreach ($files as $file) {
@@ -19,7 +25,7 @@ class ThrowErrorTest extends \PHPUnit\Framework\TestCase
             unset($file);
         }
         unset($files);
-    }// tearDownAfterClass
+    }// __destruct
 
 
     private $asset_folder;
@@ -27,10 +33,10 @@ class ThrowErrorTest extends \PHPUnit\Framework\TestCase
     private $file_text;
 
 
-    public function setUp()
+    public function setUp(): void
     {
-        $this->asset_folder = __DIR__.DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR;
-        $this->temp_folder = __DIR__.DIRECTORY_SEPARATOR.'temp'.DIRECTORY_SEPARATOR;
+        $this->asset_folder = \Rundiz\Upload\Tests\CommonConfig::getAssetsDir();
+        $this->temp_folder = \Rundiz\Upload\Tests\CommonConfig::getTempDir();
 
         // copy files from assets folder to temp to prevent file deletion while set it to $_FILES.
         $files = glob($this->asset_folder.'*.*');
@@ -55,18 +61,17 @@ class ThrowErrorTest extends \PHPUnit\Framework\TestCase
     }// setUp
 
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->file_text = null;
         $_FILES = array();
     }// tearDown
 
 
-    /**
-     * @expectedException InvalidArgumentException
-     */
     public function testInvalidInputFileNameType()
     {
+        $this->expectException(\InvalidArgumentException::class);
+
         $_FILES = $this->file_text;
 
         $Upload = new \Rundiz\Upload\Upload(array('filename'));
@@ -77,11 +82,10 @@ class ThrowErrorTest extends \PHPUnit\Framework\TestCase
     }// testInvalidInputFileNameType
 
 
-    /**
-     * @expectedException InvalidArgumentException
-     */
     public function testInvalidInputFileNameTypeForGetUploadedMimeType()
     {
+        $this->expectException(\InvalidArgumentException::class);
+
         $_FILES = $this->file_text;
 
         $Upload = new \Rundiz\Upload\Upload('filename');
@@ -91,14 +95,17 @@ class ThrowErrorTest extends \PHPUnit\Framework\TestCase
     }// testInvalidInputFileNameTypeForGetUploadedMimeType
 
 
-    /**
-     * @//expectedException PHPUnit\Framework\Error // cause reflection class not exists error.
-     * 
-     * @link https://blog.ijun.org/2017/04/reflectionexception-class.html Fix the errors.
-     */
     public function testMoveUploadedToError()
     {
-        $this->expectException(\PHPUnit\Framework\Error\Error::class);
+        if (
+            class_exists('\PHPUnit\Runner\Version') && 
+            method_exists('\PHPUnit\Runner\Version', 'id') &&
+            version_compare(\PHPUnit\Runner\Version::id(), '9.0', '>=')
+        ) {
+            $this->expectError(\PHPUnit\Framework\Error\Error::class);
+        } else {
+            $this->expectException(\PHPUnit\Framework\Error\Error::class);
+        }
         $_FILES = $this->file_text;
 
         $Upload = new \Rundiz\Upload\Upload('filename');

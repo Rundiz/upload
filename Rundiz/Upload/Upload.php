@@ -562,6 +562,9 @@ class Upload
         if (!is_string($replaceValues) && !is_array($replaceValues)) {
             return false;
         }
+        if (is_string($replaceValues)) {
+            $replaceValues = [$replaceValues];
+        }
         // end check argument types. -------------------------
 
         $error_messages = (isset($this->predefinedErrorMessages[$code]) ? $this->predefinedErrorMessages[$code] : '');

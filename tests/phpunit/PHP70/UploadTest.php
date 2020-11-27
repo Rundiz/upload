@@ -1,7 +1,8 @@
 <?php
 
 
-namespace Rundiz\Upload\Tests;
+namespace Rundiz\Upload\Tests\PHP70;
+
 
 class UploadTest extends \PHPUnit\Framework\TestCase
 {
@@ -9,6 +10,12 @@ class UploadTest extends \PHPUnit\Framework\TestCase
 
     public function __destruct()
     {
+        
+        if (empty($this->temp_folder) || stripos($this->temp_folder, DIRECTORY_SEPARATOR . 'temp') === false) {
+            // on error, the temp folder property will not set, do nothing here.
+            return ;
+        }
+
         $files = glob($this->temp_folder.'*.*');
         if (is_array($files)) {
             foreach ($files as $file) {
@@ -19,7 +26,7 @@ class UploadTest extends \PHPUnit\Framework\TestCase
             unset($file);
         }
         unset($files);
-    }// tearDownAfterClass
+    }// __destruct
 
 
     private $asset_folder;
@@ -34,8 +41,8 @@ class UploadTest extends \PHPUnit\Framework\TestCase
 
     public function setUp()
     {
-        $this->asset_folder = __DIR__.DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR;
-        $this->temp_folder = __DIR__.DIRECTORY_SEPARATOR.'temp'.DIRECTORY_SEPARATOR;
+        $this->asset_folder = \Rundiz\Upload\Tests\CommonConfig::getAssetsDir();
+        $this->temp_folder = \Rundiz\Upload\Tests\CommonConfig::getTempDir();
 
         // copy files from assets folder to temp to prevent file deletion while set it to $_FILES.
         $files = glob($this->asset_folder.'*.*');
@@ -169,8 +176,8 @@ class UploadTest extends \PHPUnit\Framework\TestCase
     {
         $Upload = new \Rundiz\Upload\Tests\ExtendedUploadForTest('filename');
         $default_mime_types_file = 'file-extensions-mime-types.php';
-        if (is_file(dirname(dirname(__DIR__)).DIRECTORY_SEPARATOR.'Rundiz'.DIRECTORY_SEPARATOR.'Upload'.DIRECTORY_SEPARATOR.$default_mime_types_file)) {
-            $Upload->file_extensions_mime_types = include dirname(dirname(__DIR__)).DIRECTORY_SEPARATOR.'Rundiz'.DIRECTORY_SEPARATOR.'Upload'.DIRECTORY_SEPARATOR.$default_mime_types_file;
+        if (is_file(\Rundiz\Upload\Tests\CommonConfig::getRundizUploadClassDir().$default_mime_types_file)) {
+            $Upload->file_extensions_mime_types = include \Rundiz\Upload\Tests\CommonConfig::getRundizUploadClassDir().$default_mime_types_file;
         }
         unset($default_mime_types_file);
 
@@ -298,8 +305,8 @@ class UploadTest extends \PHPUnit\Framework\TestCase
         $Upload->allowed_file_extensions = array('jpg', 'png', 'txt');
         $Upload->max_file_size = 60000;
         $default_mime_types_file = 'file-extensions-mime-types.php';
-        if (is_file(dirname(dirname(__DIR__)).DIRECTORY_SEPARATOR.'Rundiz'.DIRECTORY_SEPARATOR.'Upload'.DIRECTORY_SEPARATOR.$default_mime_types_file)) {
-            $Upload->file_extensions_mime_types = include dirname(dirname(__DIR__)).DIRECTORY_SEPARATOR.'Rundiz'.DIRECTORY_SEPARATOR.'Upload'.DIRECTORY_SEPARATOR.$default_mime_types_file;
+        if (is_file(\Rundiz\Upload\Tests\CommonConfig::getRundizUploadClassDir().$default_mime_types_file)) {
+            $Upload->file_extensions_mime_types = include \Rundiz\Upload\Tests\CommonConfig::getRundizUploadClassDir().$default_mime_types_file;
         }
         unset($default_mime_types_file);
         $Upload->move_uploaded_to = $this->temp_folder;
@@ -359,8 +366,8 @@ class UploadTest extends \PHPUnit\Framework\TestCase
         $Upload->allowed_file_extensions = array('jpg');
         $Upload->max_file_size = 60000;
         $default_mime_types_file = 'file-extensions-mime-types.php';
-        if (is_file(dirname(dirname(__DIR__)).DIRECTORY_SEPARATOR.'Rundiz'.DIRECTORY_SEPARATOR.'Upload'.DIRECTORY_SEPARATOR.$default_mime_types_file)) {
-            $Upload->file_extensions_mime_types = include dirname(dirname(__DIR__)).DIRECTORY_SEPARATOR.'Rundiz'.DIRECTORY_SEPARATOR.'Upload'.DIRECTORY_SEPARATOR.$default_mime_types_file;
+        if (is_file(\Rundiz\Upload\Tests\CommonConfig::getRundizUploadClassDir().$default_mime_types_file)) {
+            $Upload->file_extensions_mime_types = include \Rundiz\Upload\Tests\CommonConfig::getRundizUploadClassDir().$default_mime_types_file;
         }
         unset($default_mime_types_file);
         $Upload->move_uploaded_to = $this->temp_folder;
@@ -396,7 +403,7 @@ class UploadTest extends \PHPUnit\Framework\TestCase
             'filename' => array(
                 'name' => 'ชื่อไฟล์ภาษาไทย.jpg',
                 'type' => 'image/jpeg',
-                'tmp_name' => __DIR__.DIRECTORY_SEPARATOR.'temp'.DIRECTORY_SEPARATOR . 'ชื่อไฟล์ภาษาไทย.jpg',
+                'tmp_name' => \Rundiz\Upload\Tests\CommonConfig::getTempDir() . 'ชื่อไฟล์ภาษาไทย.jpg',
                 'error' => 0,
                 'size' => 51000,
             ),

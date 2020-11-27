@@ -8,17 +8,14 @@
          convertWarningsToExceptions="true"
          processIsolation="false"
          stopOnFailure="false"
-         syntaxCheck="true"
          verbose="true"
 >
 	<testsuites>
 		<testsuite name="tests/phpunit">
-			<directory suffix=".php">./tests/phpunit/</directory>
+			<directory suffix=".php" phpVersion="7.0" phpVersionOperator="&lt;">./tests/phpunit/PHPB70</directory>
+			<directory suffix=".php" phpVersion="7.0.33" phpVersionOperator="==">./tests/phpunit/PHP70</directory>
+			<directory suffix=".php" phpVersion="7.1.33" phpVersionOperator="==">./tests/phpunit/PHP70</directory>
+			<directory suffix=".php" phpVersion="7.2" phpVersionOperator=">=">./tests/phpunit/PHP72</directory>
 		</testsuite>
 	</testsuites>
-	<filter>
-		<whitelist>
-			<directory suffix=".php">./Rundiz/Upload/</directory>
-		</whitelist>
-	</filter>
 </phpunit>

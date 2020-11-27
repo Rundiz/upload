@@ -1,7 +1,8 @@
 <?php
 
 
-namespace Rundiz\Upload\Tests;
+namespace Rundiz\Upload\Tests\PHP70;
+
 
 class ValidatePropertiesTest extends \PHPUnit\Framework\TestCase
 {
@@ -9,6 +10,12 @@ class ValidatePropertiesTest extends \PHPUnit\Framework\TestCase
 
     public function __destruct()
     {
+        
+        if (empty($this->temp_folder) || stripos($this->temp_folder, DIRECTORY_SEPARATOR . 'temp') === false) {
+            // on error, the temp folder property will not set, do nothing here.
+            return ;
+        }
+
         $files = glob($this->temp_folder.'*.*');
         if (is_array($files)) {
             foreach ($files as $file) {
@@ -19,7 +26,7 @@ class ValidatePropertiesTest extends \PHPUnit\Framework\TestCase
             unset($file);
         }
         unset($files);
-    }// tearDownAfterClass
+    }// __destruct
 
 
     private $asset_folder;
@@ -30,8 +37,8 @@ class ValidatePropertiesTest extends \PHPUnit\Framework\TestCase
 
     public function setUp()
     {
-        $this->asset_folder = __DIR__.DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR;
-        $this->temp_folder = __DIR__.DIRECTORY_SEPARATOR.'temp'.DIRECTORY_SEPARATOR;
+        $this->asset_folder = \Rundiz\Upload\Tests\CommonConfig::getAssetsDir();
+        $this->temp_folder = \Rundiz\Upload\Tests\CommonConfig::getTempDir();
 
         // copy files from assets folder to temp to prevent file deletion while set it to $_FILES.
         $files = glob($this->asset_folder.'*.*');
@@ -67,7 +74,7 @@ class ValidatePropertiesTest extends \PHPUnit\Framework\TestCase
     {
         $_FILES = $this->file_text;
 
-        $Upload = new ExtendedUploadForTest('filename');
+        $Upload = new \Rundiz\Upload\Tests\ExtendedUploadForTest('filename');
 
         $Upload->allowed_file_extensions = 'invalidType';
         $Upload->validateOptionsProperties();
@@ -85,7 +92,7 @@ class ValidatePropertiesTest extends \PHPUnit\Framework\TestCase
     {
         $_FILES = $this->file_text;
 
-        $Upload = new ExtendedUploadForTest('filename');
+        $Upload = new \Rundiz\Upload\Tests\ExtendedUploadForTest('filename');
 
         $Upload->file_extensions_mime_types = 'invalidType';
         $Upload->validateOptionsProperties();
@@ -103,7 +110,7 @@ class ValidatePropertiesTest extends \PHPUnit\Framework\TestCase
     {
         $_FILES = $this->file_text;
 
-        $Upload = new ExtendedUploadForTest('filename');
+        $Upload = new \Rundiz\Upload\Tests\ExtendedUploadForTest('filename');
 
         $Upload->max_file_size = '2.5';
         $Upload->validateOptionsProperties();
@@ -121,7 +128,7 @@ class ValidatePropertiesTest extends \PHPUnit\Framework\TestCase
     {
         $_FILES = $this->file_text;
 
-        $Upload = new ExtendedUploadForTest('filename');
+        $Upload = new \Rundiz\Upload\Tests\ExtendedUploadForTest('filename');
 
         $Upload->max_image_dimensions = 'invalidType';
         $Upload->validateOptionsProperties();
@@ -155,7 +162,7 @@ class ValidatePropertiesTest extends \PHPUnit\Framework\TestCase
     {
         $_FILES = $this->file_text;
 
-        $Upload = new ExtendedUploadForTest('filename');
+        $Upload = new \Rundiz\Upload\Tests\ExtendedUploadForTest('filename');
 
         $Upload->new_file_name = array('newFileName');
         $Upload->validateOptionsProperties();
