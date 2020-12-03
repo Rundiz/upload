@@ -57,6 +57,7 @@ return array(
     'rar' => array('application/x-rar-compressed'),
     'shtml' => array('text/html', 'text/x-server-parsed-html'),
     'svg' => array('image/svg+xml'),
+    'swf' => array('application/x-shockwave-flash'),
     'tar' => array('application/x-tar'),
     'text' => array('text/plain'),
     'tgz' => array('application/x-gzip-compressed', 'application/x-tar'),
