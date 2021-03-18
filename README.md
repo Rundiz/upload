@@ -110,7 +110,7 @@ test-upload-form.php
 </html>
 ```
 
-### Example results of `getUploadData()`
+### Example results of `getUploadedData()`
 The uploaded files and moved successfully will be result in array with these key => value format.
 
 ```php
