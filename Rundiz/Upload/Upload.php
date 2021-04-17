@@ -103,6 +103,7 @@ class Upload
         'RDU_SEC_ERR_PHP' => 'Error! Found php embedded in the uploaded file. (%s).',
         'RDU_SEC_ERR_CGI' => 'Error! Found cgi/perl embedded in the uploaded file. (%s).',
         'RDU_SEC_ERR_SHELL' => 'Error! Found shell script embedded in the uploaded file. (%s).',
+        'RDU_SEC_ERR_EXTERNAL' => 'Error! The security scan found the error. (%s).',
         'RDU_MOVE_UPLOADED_TO_NOT_DIR' => 'The target location where the uploaded file(s) will be moved to is not folder or directory.',
         'RDU_MOVE_UPLOADED_TO_NOT_WRITABLE' => 'The target location where the uploaded file(s) will be moved to is not writable. Please check the folder permission.',
         'RDU_UNABLE_VALIDATE_EXT' => 'Unable to validate extension for the file %s.',
@@ -176,6 +177,23 @@ class Upload
      * </pre>
      */
     public $errorMessagesRaw = array();
+
+
+    /**
+     * @since 2.0.12
+     * @var array External security scan as callback. Example:<pre>
+     * array($MyAntivirusClass, 'scanNow');
+     * </pre>
+     * The return result must be boolean (`true` for success, `false` for otherwise).
+     */
+    public $externalSecurityScan = array();
+
+
+    /**
+     * @since 2.0.12
+     * @var array External security scan result message.
+     */
+    public $externalSecurityScanResultMessage = '';
 
 
     /**
@@ -523,6 +541,38 @@ class Upload
                         $this->files[$this->input_file_name]['type']
                     );
                     return false;
+                }
+
+                if (!empty($this->externalSecurityScan)) {
+                    // if there is external security scan.
+                    // call user function (or class) to that external security scan.
+                    $externalScanResult = call_user_func(
+                        $this->externalSecurityScan, 
+                        $this, 
+                        $this->files[$this->input_file_name]['tmp_name'], 
+                        $file_content,
+                        $this->files[$this->input_file_name]['name']
+                    );
+                    if (is_bool($externalScanResult)) {
+                        if ($externalScanResult === false) {
+                            // if external scanned and failed.
+                            if (!empty($this->externalSecurityScanResultMessage)) {
+                                $replaceValues = $this->externalSecurityScanResultMessage;
+                            } else {
+                                $replaceValues = $this->files[$this->input_file_name]['name'];
+                            }
+                            $this->setErrorMessage(
+                                'RDU_SEC_ERR_EXTERNAL',
+                                $replaceValues,
+                                $this->files[$this->input_file_name]['name'],
+                                $this->files[$this->input_file_name]['name'],
+                                $this->files[$this->input_file_name]['size'],
+                                $this->files[$this->input_file_name]['type']
+                            );
+                        }
+                        return $externalScanResult;
+                    }
+                    unset($externalScanResult);
                 }
 
                 unset($file_content);

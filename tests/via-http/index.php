@@ -17,6 +17,7 @@
                         <li><a href="test-full-customize-file-upload.php">Test full customization file upload.</a></li>
                         <li><a href="test-full-customize-file-upload-no-ext-limited.php">Test full customization file upload without file extension limited.</a></li>
                         <li><a href="test-gettext-for-translations.php">Test get text for translations.</a></li>
+                        <li><a href="test-clamav.php">Test security scan using ClamAV.</a></li>
                     </ul>
                     <a href="clear-uploaded-files.php" class="btn btn-danger" onclick="return confirm('Are you sure to delete all uploaded files?');">Clear all uploaded files.</a>
                 </div>
