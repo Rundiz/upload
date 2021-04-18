@@ -15,13 +15,18 @@ class MyAVS
     public function doScan($UploadClass, $fileUploadedPath, $fileContents, $fileOriginalName)
     {
         try {
-            $clam = new Network('localhost', 3310);
+            // ClamAV maybe unable to scan files, folders in /tmp folder. Please follow these instruction to fix it.
+            // https://stackoverflow.com/questions/47625768/php-file-upload-scanning-using-clamav-permissions-on-tmp 
+            //  look in /lib/systemd/system for apache2.service, httpd.service, etc... and change PrivateTmp=false
+            //  also run this command `usermod -a -G apache clamscan`.
+            // https://clamav-users.clamav.narkive.com/Bul2w2Wf/clamav-failed-to-scan-files-in-tmp-folder
+            $clam = new Network('127.0.0.1', 3310);
             $scanResult = $clam->fileScan($fileUploadedPath);
             if (is_bool($scanResult) && true === $scanResult) {
                 return true;
             }
 
-            $UploadClass->externalSecurityScanResultMessage = 'Virus scan failed. (' . $fileOriginalName . ')';
+            $UploadClass->externalSecurityScanResultMessage = 'Virus scan failed. (uploaded file name: ' . $fileOriginalName . '; scanned upload file (tmp): ' . $fileUploadedPath . ')';
             return false;
         } catch (\Exception $ex) {
             $UploadClass->externalSecurityScanResultMessage = $ex->getMessage();
