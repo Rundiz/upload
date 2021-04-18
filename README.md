@@ -1,7 +1,18 @@
 # Upload Component
 
 PHP Upload.<br>
-Upload single or multiple files with validations. (allowed file extensions, matched mime type, max file size, max image dimensions, security scan, reserved file name, safe for web file name).
+Upload single or multiple files with validations.
+
+##Features
+
+* allowed file extensions
+* matched mime type
+* max file size
+* max image dimensions
+* security scan
+	* external security scan such as virus scan
+* reserved file name
+* safe for web file name
 
 [![Latest Stable Version](https://poser.pugx.org/rundiz/upload/v/stable)](https://packagist.org/packages/rundiz/upload)
 [![License](https://poser.pugx.org/rundiz/upload/license)](https://packagist.org/packages/rundiz/upload)
