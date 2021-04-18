@@ -10,7 +10,7 @@ Upload single or multiple files with validations.
 * max file size
 * max image dimensions
 * security scan
-	* external security scan such as virus scan
+  * external security scan such as virus scan
 * reserved file name
 * safe for web file name
 
