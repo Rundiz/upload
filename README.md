@@ -3,7 +3,7 @@
 PHP Upload.<br>
 Upload single or multiple files with validations.
 
-##Features
+## Features
 
 * allowed file extensions
 * matched mime type
