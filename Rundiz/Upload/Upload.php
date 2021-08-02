@@ -13,7 +13,7 @@ namespace Rundiz\Upload;
  * PHP upload class that is able to validate requirements and limitations, real file's mime type check, detect the errors and report.
  *
  * @package Upload
- * @version 2.0.11
+ * @version 2.0.12
  * @author Vee W.
  * 
  * @property-read array $predefinedErrorMessages Pre-defined error messages.
