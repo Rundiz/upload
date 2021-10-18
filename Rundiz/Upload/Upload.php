@@ -28,6 +28,13 @@ class Upload
     public $allowed_file_extensions;
 
     /**
+     * @since 2.0.13
+     * @var bool Calculate hash file content. Set to `true` to calculate file content such as `md5_file()`, `false` to not calculate. Default is `true`.
+     * Skip this calculation if file size is too large.
+     */
+    public $calculate_hash_file = true;
+
+    /**
      * @var array|null The array set of file extensions and its valid mime types for check when process the uploaded files.<br>
      * Example:
      * <pre>
@@ -191,7 +198,7 @@ class Upload
 
     /**
      * @since 2.0.12
-     * @var array External security scan result message.
+     * @var string External security scan result message.
      */
     public $externalSecurityScanResultMessage = '';
 
@@ -254,7 +261,10 @@ class Upload
     public function clear()
     {
         $this->allowed_file_extensions = null;
+        $this->calculate_hash_file = true;
         $this->error_messages = array();
+        $this->externalSecurityScan = array();
+        $this->externalSecurityScanResultMessage = '';
         $this->file_extensions_mime_types = null;
         $this->files = array();
         $this->input_file_name = null;
@@ -370,7 +380,7 @@ class Upload
                 $output[$key]['new_name'] = $queue_item['new_name'];
                 $output[$key]['full_path_new_name'] = $queue_item['move_uploaded_to'];
                 $output[$key]['mime'] = $mime;
-                $output[$key]['md5_file'] = (is_file($queue_item['move_uploaded_to']) ? md5_file($queue_item['move_uploaded_to']) : null);
+                $output[$key]['md5_file'] = ($this->calculate_hash_file === true && is_file($queue_item['move_uploaded_to']) ? md5_file($queue_item['move_uploaded_to']) : null);
 
                 unset($file_extension, $mime);
             }
@@ -1301,6 +1311,18 @@ class Upload
     {
         if (!is_array($this->allowed_file_extensions) && $this->allowed_file_extensions != null) {
             $this->allowed_file_extensions = array($this->allowed_file_extensions);
+        }
+
+        if (!is_bool($this->calculate_hash_file)) {
+            $this->calculate_hash_file = true;
+        }
+
+        if (!is_array($this->externalSecurityScan)) {
+            $this->externalSecurityScan = array();
+        }
+
+        if (!is_scalar($this->externalSecurityScanResultMessage)) {
+            $this->externalSecurityScanResultMessage = '';
         }
 
         if (!is_array($this->file_extensions_mime_types) && $this->file_extensions_mime_types != null) {

@@ -33,6 +33,9 @@ if (strtolower($_SERVER['REQUEST_METHOD']) == 'post') {
     if (isset($_POST['security_scan'])) {
         $Upload->security_scan = ($_POST['security_scan'] === 'true' ? true : false);
     }
+    if (isset($_POST['calculate_hash_file'])) {
+        $Upload->calculate_hash_file = ($_POST['calculate_hash_file'] === 'true' ? true : false);
+    }
     if (isset($_POST['stop_on_failed_upload_multiple'])) {
         $Upload->stop_on_failed_upload_multiple = ($_POST['stop_on_failed_upload_multiple'] === 'true' ? true : false);
     }
@@ -51,6 +54,9 @@ if (!isset($web_safe_file_name)) {
 }
 if (!isset($security_scan)) {
     $security_scan = 'false';
+}
+if (!isset($calculate_hash_file)) {
+    $calculate_hash_file = 'true';
 }
 if (!isset($stop_on_failed_upload_multiple)) {
     $stop_on_failed_upload_multiple = 'true';
@@ -138,6 +144,14 @@ if (!isset($stop_on_failed_upload_multiple)) {
                             </select>
                             <p class="help-block">Scan for PHP and perl code in the file.</p>
                         </div>
+                        <div class="form-group">
+                            <label>Calculate hash file content</label>
+                            <select name="calculate_hash_file" class="form-control">
+                                <option value="true"<?php if (isset($calculate_hash_file) && $calculate_hash_file === 'true') { ?> selected<?php } ?>>Yes</option>
+                                <option value="false"<?php if (isset($calculate_hash_file) && $calculate_hash_file === 'false') { ?> selected<?php } ?>>No</option>
+                            </select>
+                            <p class="help-block">Calculate hash file content. Skip this if file size is too large.</p>
+                        </div>
                         <div>
                             <button type="submit" class="btn btn-primary">Upload</button>
                         </div>
@@ -190,6 +204,14 @@ if (!isset($stop_on_failed_upload_multiple)) {
                                 <option value="false"<?php if (isset($security_scan) && $security_scan === 'false') { ?> selected<?php } ?>>No</option>
                             </select>
                             <p class="help-block">Scan for PHP and perl code in the file.</p>
+                        </div>
+                        <div class="form-group">
+                            <label>Calculate hash file content</label>
+                            <select name="calculate_hash_file" class="form-control">
+                                <option value="true"<?php if (isset($calculate_hash_file) && $calculate_hash_file === 'true') { ?> selected<?php } ?>>Yes</option>
+                                <option value="false"<?php if (isset($calculate_hash_file) && $calculate_hash_file === 'false') { ?> selected<?php } ?>>No</option>
+                            </select>
+                            <p class="help-block">Calculate hash file content. Skip this if file size is too large.</p>
                         </div>
                         <div class="form-group">
                             <label>Stop on failed upload occur</label>

@@ -46,6 +46,8 @@ if (strtolower($_SERVER['REQUEST_METHOD']) == 'post') {
     $Upload->security_scan = true;
     // If you upload multiple files, do you want it to be stopped if error occur? (Set to false will skip the error files).
     $Upload->stop_on_failed_upload_multiple = false;
+    // You may set calculate hash file to false if file size is too large to prevent execution timeout. (This is new since 2.0.13).
+    $Upload->calculate_hash_file = true;
 
     // Begins upload
     $upload_result = $Upload->upload();
