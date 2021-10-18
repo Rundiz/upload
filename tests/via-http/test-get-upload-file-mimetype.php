@@ -18,7 +18,7 @@ if (strtolower($_SERVER['REQUEST_METHOD']) == 'post') {
         <div class="container">
             <div class="row">
                 <div class="col-xs-12">
-                    <h1>Test get uploaded file's mime type.</h1>
+                    <h1>Test get uploaded file's mime type using <a href="https://www.php.net/manual/en/class.finfo.php" target="finfo">Finfo</a>.</h1>
                     <?php if (isset($file_info) && !empty($file_info)) { ?> 
                     <div class="alert alert-warning">
                         <?php echo $file_info; ?> 
