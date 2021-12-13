@@ -409,7 +409,7 @@ class UploadTest extends \PHPUnit\Framework\TestCase
             ),
         );
         $Upload->setFilesPropertyForCheck();
-        $Upload->new_file_name = null;
+        $Upload->new_file_name = '';
         $Upload->setNewFileName();
         $Upload->setWebSafeFileName();
         $this->assertNotSame('', $Upload->new_file_name);

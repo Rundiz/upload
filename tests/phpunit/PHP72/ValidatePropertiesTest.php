@@ -166,7 +166,8 @@ class ValidatePropertiesTest extends \PHPUnit\Framework\TestCase
 
         $Upload->new_file_name = array('newFileName');
         $Upload->validateOptionsProperties();
-        $this->assertNull($Upload->new_file_name);
+        $this->assertIsString($Upload->new_file_name);
+        $this->assertEmpty($Upload->new_file_name);
 
         $Upload->new_file_name = 'newFileName';
         $Upload->validateOptionsProperties();

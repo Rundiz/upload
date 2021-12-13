@@ -13,7 +13,7 @@ namespace Rundiz\Upload;
  * PHP upload class that is able to validate requirements and limitations, real file's mime type check, detect the errors and report.
  *
  * @package Upload
- * @version 2.0.13
+ * @version 2.0.14
  * @author Vee W.
  * 
  * @property-read array $predefinedErrorMessages Pre-defined error messages.
@@ -85,7 +85,7 @@ class Upload
      * Important! This property is not recommend to set it if you upload multiple files with same input file name. It is recommended to leave this as null and set overwrite property to true or false.<br>
      * If you want to set the name while upload multiple files, it is recommended that you set overwrite property to false.
      */
-    public $new_file_name;
+    public $new_file_name = '';
 
     /**
      * @var boolean To overwrite the uploaded file set it to true, otherwise set it to false.
@@ -272,7 +272,7 @@ class Upload
         $this->max_image_dimensions = array();
         $this->move_uploaded_queue = array();
         $this->move_uploaded_to = '.';
-        $this->new_file_name = null;
+        $this->new_file_name = '';
         $this->overwrite = false;
         $this->web_safe_file_name = true;
         $this->security_scan = false;
@@ -623,7 +623,7 @@ class Upload
             return false;
         }
         if (is_string($replaceValues)) {
-            $replaceValues = [$replaceValues];
+            $replaceValues = array($replaceValues);
         }
         // end check argument types. -------------------------
 
@@ -1360,7 +1360,7 @@ class Upload
         }
 
         if (!is_string($this->new_file_name) && $this->new_file_name != null) {
-            $this->new_file_name = null;
+            $this->new_file_name = '';
         }
 
         if (!is_bool($this->overwrite)) {
