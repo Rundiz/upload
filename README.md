@@ -3,7 +3,7 @@
 PHP Upload.<br>
 Upload single or multiple files with validations.
 
-Tested up to PHP 8.4.
+Tested up to PHP 8.5.
 
 ## Features
 
